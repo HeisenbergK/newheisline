@@ -1,10 +1,25 @@
-heislineversion = 2.2
-import sys
-from colorama import init
-init(strip=not sys.stdout.isatty())  # strip colors if stdout is redirected
-from termcolor import cprint
-from pyfiglet import figlet_format
-cprint(figlet_format(('version ' + str(heislineversion)), font='starwars'), 'yellow', 'on_red', attrs=['bold'])
+heislineversion = 2.4
+filer = open("heisline_version")
+versioncont = []
+for line in filer:
+    versioncont.append(line.strip("\n"))
+filer.close()
+date = versioncont[1]
+
+import curses
+from curses import wrapper
+
+def main(stdscr):
+    # Clear screen
+    stdscr.clear()
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
+
+    stdscr.addstr(0, 0, ("You are using code with Version: " + str(heislineversion) + " (updated on " + date + ")"), curses.A_BOLD)
+    stdscr.addstr(1, 0, "Press ENTER to resume code", curses.A_BOLD)
+    stdscr.refresh()
+    stdscr.getkey()
+
+wrapper(main)
 
 from heisline_calls import *
 from heisline_fluxcalib import *
