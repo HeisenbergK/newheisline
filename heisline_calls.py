@@ -328,7 +328,7 @@ def binimage(imname, binsize, binnedname):
     im = np.array(fitsfile[0].data)
     xedge = np.shape(im)[0] % binsize
     yedge = np.shape(im)[1] % binsize
-    im = im[xedge:, yedge:]
+    im = im[int(xedge):, int(yedge):]
     binim = np.reshape(im, (np.shape(im)[0]/binsize, binsize, np.shape(im)[1]/binsize, binsize))
     binim = np.sum(binim, axis=3)
     binim = np.sum(binim, axis=1)
@@ -364,12 +364,18 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
 
     expo = float(expo)
     image = np.array(image[0].data)
+    if (len(errim) != len(image)) or (len(errim[0]) != len(image[0])):
+        errimname = imname
+    errim = fits.open(errimname)
+    errim = np.array(errim[0].data)
     counts = 0
     bins = 0
     for i in range(0,len(image)):
         for j in range(0,len(image[i])):
-            if (((image[i][j])/(np.sqrt(errim[i][j])))>=sigma):
-                counts += image[i][j]
+            factor1 = image[i][j]
+            factor2 = errim[i][j]
+            if ((factor1/(np.sqrt(factor2)))>=sigma):
+                counts += factor1
                 bins += 1
     flux = counts - (bins * skyval)
     error = np.sqrt((np.divide(flux, epadu)) + (bins * skyerr * skyerr))

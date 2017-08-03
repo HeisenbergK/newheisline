@@ -1,4 +1,4 @@
-heislineversion = 2.4
+heislineversion = 2.6
 filer = open("heisline_version")
 versioncont = []
 for line in filer:
@@ -495,6 +495,9 @@ while True:
     if dummy == 1:
         break
 
+for i in filtnames:
+    os.system("cp "+str(i)+"/"+basename+"_"+str(i)+"_W_allstarfin.fit"+" .")
+
 
 os.system('mkdir results')
 
@@ -543,7 +546,7 @@ siisigma = raw_input("Enter the sigma level to be used for the photometry of the
 siisigma = float(analysissigma)
 
 binsize = raw_input("Enter the bin size in pixels to be used for the analysis (I suggest at least 20):\t")
-binsize = float(binsize)
+binsize = int(binsize)
 
 hak = raw_input("Re-Enter the Ha absorption coefficient to be used for the analysis:\t")
 hak = float(hak)
