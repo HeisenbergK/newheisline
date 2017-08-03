@@ -37,16 +37,16 @@ def main(stdscr):
     stdscr.addstr(0, 0, ("You are using code with Version: " + str(heislineversion) + " (updated on " + date + ")"), curses.A_BOLD)
     if newbug != "None":
         stdscr.addstr(1, 0, "Bug report for current version:", curses.A_STANDOUT)
-        if newbug[1] == "OPERATIONAL":
+        if newbug[1] == "OPPERATIONAL":
             stdscr.addstr(2, 0, "The version is operational", curses.A_BLINK)
         if newbug[1] == "NOTOPERATIONAL":
             stdscr.addstr(2, 0, "The version is not operational", curses.A_BLINK)
         stdscr.addstr(3, 0, ("Bug level:" + newbug[4]), curses.A_BOLD)
         stdscr.addstr(4, 0, "Known bugs:", curses.A_BOLD)
         stdscr.addstr(5, 0, newbug[2], curses.A_BOLD)
-        stdscr.addstr(4, 0, "Bug effect:", curses.A_BOLD)
-        stdscr.addstr(5, 0, newbug[3], curses.A_BOLD)
-        stdscr.addstr(6, 0, "Press ENTER to resume code", curses.A_BOLD)
+        stdscr.addstr(6, 0, "Bug effect:", curses.A_BOLD)
+        stdscr.addstr(7, 0, newbug[3], curses.A_BOLD)
+        stdscr.addstr(8, 0, "Press ENTER to resume code", curses.A_BOLD)
     else:
         stdscr.addstr(1, 0, "Press ENTER to resume code", curses.A_BOLD)
     stdscr.refresh()
