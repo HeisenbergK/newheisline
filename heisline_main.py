@@ -1,10 +1,30 @@
 heislineversion = 2.6
+
 filer = open("heisline_version")
 versioncont = []
 for line in filer:
     versioncont.append(line.strip("\n"))
 filer.close()
 date = versioncont[1]
+
+bugger = open("heisline_bugs.log")
+buggercont = []
+for line in bugger:
+    buggercont.append(line.strip("\n"))
+filer.close()
+
+bugs = "None"
+for i in buggercont:
+    if i.startswith(str(heislineversion)):
+        bugs=i
+
+if bugs == "None":
+    newbug = "None"
+else:
+    newbug = bugs.split(';')
+
+
+
 
 import curses
 from curses import wrapper
@@ -15,7 +35,20 @@ def main(stdscr):
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
 
     stdscr.addstr(0, 0, ("You are using code with Version: " + str(heislineversion) + " (updated on " + date + ")"), curses.A_BOLD)
-    stdscr.addstr(1, 0, "Press ENTER to resume code", curses.A_BOLD)
+    if newbug != "None":
+        stdscr.addstr(1, 0, "Bug report for current version:", curses.A_STANDOUT)
+        if newbug[1] == "OPERATIONAL":
+            stdscr.addstr(2, 0, "The version is operational", curses.A_BLINK)
+        if newbug[1] == "NOTOPERATIONAL":
+            stdscr.addstr(2, 0, "The version is not operational", curses.A_BLINK)
+        stdscr.addstr(3, 0, ("Bug level:" + newbug[4]), curses.A_BOLD)
+        stdscr.addstr(4, 0, "Known bugs:", curses.A_BOLD)
+        stdscr.addstr(5, 0, newbug[2], curses.A_BOLD)
+        stdscr.addstr(4, 0, "Bug effect:", curses.A_BOLD)
+        stdscr.addstr(5, 0, newbug[3], curses.A_BOLD)
+        stdscr.addstr(6, 0, "Press ENTER to resume code", curses.A_BOLD)
+    else:
+        stdscr.addstr(1, 0, "Press ENTER to resume code", curses.A_BOLD)
     stdscr.refresh()
     stdscr.getkey()
 
@@ -500,6 +533,9 @@ for i in filtnames:
 
 
 os.system('mkdir results')
+filer = open("versioncontrol", 'rw')
+filer.write(str(heislineversion))
+filer.close()
 
 harawimname = basename + "_" + hafilname + "_W_allstarfin.fit"
 siirawimname = basename + "_" + siifilname + "_W_allstarfin.fit"
