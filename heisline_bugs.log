@@ -5,3 +5,4 @@
 2.4;DISCONTINUED;Uncertainty propagation mistake in code.;Results can be trusted, their uncertainties not;IMPORTANT
 2.5;DISCONTINUED;Code not stable.;Reduction will occur properly. Results will not be produced.;URGENT
 2.6;OPPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
+2.7;OPPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE

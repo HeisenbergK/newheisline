@@ -156,7 +156,7 @@ def combining(imagelist, filtname, basename):
 
 def astrometry(directory, filtname, basename, roughestimatera, roughestimatedec):
     os.chdir(directory + "/" + filtname)
-    os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 25 -t=2 %s --no-fits2fits" % (roughestimatera, roughestimatedec, "test.fit", basename + "_" + filtname + ".fit"))
+    os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 25 -t=2 %s" % (roughestimatera, roughestimatedec, "test.fit", basename + "_" + filtname + ".fit"))
     os.system("mv test.new %s" % (basename + "_" + filtname + "_W.fit"))
     os.system("rm %s %s %s %s %s %s %s %s %s %s" % ("test-ngc.png", "test.wcs", "test-objs.png", "test-indx.png", "test-indx.xyls", "test.rdls", "test.axy", "test.solved", "test.match", "test.corr"))
     if not os.path.isfile(basename + "_" + filtname + "_W.fit"):
