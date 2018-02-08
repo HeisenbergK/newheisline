@@ -9,16 +9,20 @@ import pyregion
 
 
 # check for interactivity
-def masterinteractivitycheck(type):
+def masterinteractivitycheck(typed):
     messages = ["Do you want interactive mode (to be able to replace files on fly)? (Y/n) \t",
                 "If you want replace BIAS.fit do it now then if you want to turn off interactivity answer n \t",
-                "If you want replace the bias-subtracted images (*_b.fit) do it now then if you want to turn off interactivity answer n \t",
-                "If you want replace the flat images (FLAT_*_norm.fit) do it now then if you want to turn off interactivity answer n \t",
-                "If you want replace the flat-fielded images (*_f.fit) do it now then if you want to turn off interactivity answer n \t",
-                "If you want replace the reference image for the alignment do it now editing the merged_b_f and merged_b_f_sh lists putting the desired image first\t",
+                "If you want replace the bias-subtracted images (*_b.fit) do it now then if you want to turn "
+                "off interactivity answer n \t",
+                "If you want replace the flat images (FLAT_*_norm.fit) do it now then if you want to turn "
+                "off interactivity answer n \t",
+                "If you want replace the flat-fielded images (*_f.fit) do it now then "
+                "if you want to turn off interactivity answer n \t",
+                "If you want replace the reference image for the alignment do it now editing the merged_b_f and "
+                "merged_b_f_sh lists putting the desired image first\t",
                 "If you want replace the coordinates file (aligcoordslog)\t"]
     while True:
-        response = raw_input(messages[type])
+        response = raw_input(messages[typed])
         if response == 'n' or response == 'N':
             response = 'n'
             break
@@ -29,7 +33,7 @@ def masterinteractivitycheck(type):
 
 
 # ask whether user want something
-def ask(type):
+def ask(typed):
     messages = ["Do you want bias-subtraction?\t",
                 "Do you want flat-subtraction?\t",
                 "Do you want to align images?\t",
@@ -37,9 +41,10 @@ def ask(type):
                 "Do you want to add WCS to the images?\t",
                 "Do you want to calculate the scaling factor of the continuum images?\t",
                 "Do you want to scale-subtract the continuum images from the narrow-band ones?\t",
-                "Do you want to follow the automated method to flux calibrate (y) [!!NOT YET SUPPORTED!!] or input the extinction coefficient and Zero Point yourself (n)?\t"]
+                "Do you want to follow the automated method to flux calibrate (y) [!!NOT YET SUPPORTED!!] "
+                "or input the extinction coefficient and Zero Point yourself (n)?\t"]
     while True:
-        response = raw_input(messages[type])
+        response = raw_input(messages[typed])
         if response == 'n' or response == 'N':
             response = 'n'
             break
@@ -52,7 +57,8 @@ def ask(type):
 # average-combines bias frames to master bias frame
 def combinebias(biaslist):
     iraf.unlearn('zerocombine')
-    iraf.noao.imred.ccdred.zerocombine(biaslist, output="BIAS.fit", combine="average", rdnoise=8.1, gain=2.867, ccdtype="")
+    iraf.noao.imred.ccdred.zerocombine(biaslist, output="BIAS.fit", combine="average", rdnoise=8.1, gain=2.867,
+                                       ccdtype="")
     iraf.unlearn('zerocombine')
 
 
@@ -78,41 +84,46 @@ def choosefilters():
 # subtracts bias from files
 def subtractbias(imlist, biasimage):
     iraf.unlearn("ccdproc")
-    iraf.noao.imred.ccdred.ccdproc(images=("@" + imlist), output=("@" + imlist + "_b"), ccdtype="", fixpix="no", overscan="no", trim="no", darkcor="no", flatcor="no", zero=biasimage)
+    iraf.noao.imred.ccdred.ccdproc(images=("@" + imlist), output=("@" + imlist + "_b"), ccdtype="", fixpix="no",
+                                   overscan="no", trim="no", darkcor="no", flatcor="no", zero=biasimage)
     iraf.unlearn("ccdproc")
 
 
 # median-combines flat frames to master flat frame for filter
 def combineflats(flatlist, filtname):
     iraf.unlearn("immatch")
-    iraf.images.immatch.imcombine(input=("@" + flatlist + "_b"), output=("FLAT_" + filtname + ".fit"), combine="median", rdnoise=8.1, gain=2.867)
+    iraf.images.immatch.imcombine(input=("@" + flatlist + "_b"), output=("FLAT_" + filtname + ".fit"),
+                                  combine="median", rdnoise=8.1, gain=2.867)
     iraf.unlearn("immatch")
     iraf.unlearn("imstatistics")
-    flat_mean = iraf.images.imutil.imstatistics(images=("FLAT_" + filtname + ".fit"), fields="mean", format="No", Stdout=1)
+    flat_mean = iraf.images.imutil.imstatistics(images=("FLAT_" + filtname + ".fit"), fields="mean", format="No",
+                                                Stdout=1)
     iraf.unlearn("imstatistics")
     flat_mean_num = float(flat_mean[0])
     if flat_mean_num == 0:
         print("Error on flat image %s" % flatlist)
         sys.exit()
     iraf.unlearn("imarith")
-    iraf.images.imutil.imarith(operand1=("FLAT_" + filtname + ".fit"), op="/", operand2=flat_mean_num, result=("FLAT_" + filtname + "_norm.fit"))
+    iraf.images.imutil.imarith(operand1=("FLAT_" + filtname + ".fit"), op="/", operand2=flat_mean_num,
+                               result=("FLAT_" + filtname + "_norm.fit"))
     iraf.unlearn("imarith")
 
 
 # divides images by normalized flat frame
 def flatfielding(imagelist, filtname):
     iraf.unlearn("imarith")
-    iraf.images.imutil.imarith(operand1=("@" + imagelist + "_b"), op="/", operand2=("FLAT_" + filtname + "_norm.fit"), result=("@" + imagelist + "_b_f"))
+    iraf.images.imutil.imarith(operand1=("@" + imagelist + "_b"), op="/", operand2=("FLAT_" + filtname + "_norm.fit"),
+                               result=("@" + imagelist + "_b_f"))
     iraf.unlearn("imarith")
 
 
-# alignes images using imalign
+# aligns images using imalign
 def aligning(referenceim):
     print("Now the images will be shifted")
     bbox = input("Enter a rough estimate of the max shift needed\t")
     sbox = input("Enter a rough estimate of the FWHM\t")
     bbox = int(2 * bbox)
-    sbox = sbox + 2
+    sbox += 2
     os.system("ds9 &")
     print("You are now to select 5-10 stars that are isolated and well-defined")
     referenceim = referenceim.rstrip("\n")
@@ -128,37 +139,44 @@ def aligning(referenceim):
     counter = 1
     while True:
         if correct == "n":
-            sbox = sbox - 1
+            sbox -= 1
             bbox = 1.1 * bbox
             if counter > 1:
                 os.system("rm -rf *_sh.fit")
             iraf.unlearn("imalign")
-            iraf.images.immatch.imalign(input="@merged_b_f", reference=referenceim, coords="aligcoordslog", output="@merged_b_f_sh", niterate=200, boxsize=sbox, bigbox=bbox)
+            iraf.images.immatch.imalign(input="@merged_b_f", reference=referenceim, coords="aligcoordslog",
+                                        output="@merged_b_f_sh", niterate=200, boxsize=sbox, bigbox=bbox)
             iraf.unlearn("imalign")
-        print("Please examine if the alignment was correct. Close ds9 and answer y/n. If you answer with something other than 'y' or 'n' the result won't change")
+        print("Please examine if the alignment was correct. Close ds9 and answer y/n. If you answer with something "
+              "other than 'y' or 'n' the result won't change")
         os.system("ds9 *_sh.fit")
         correct = raw_input()
         if counter == 10:
             break
         if correct == "y":
             break
-        counter = counter + 1
+        counter += 1
     if counter == 10:
-        failalign = raw_input("I cannot align the images. Either the max shift and FWHM was incorrect or the images are bad.  Please align them yourself, replace the existing *_sh.fit files aand hit enter")
-
+        failalign = raw_input("I cannot align the images. Either the max shift and FWHM was incorrect or the images "
+                              "are bad.  Please align them yourself, replace the existing *_sh.fit files aand "
+                              "hit enter")
 
 
 def combining(imagelist, filtname, basename):
     iraf.unlearn("imcombine")
-    iraf.images.immatch.imcombine(input=("@" + imagelist), output=(basename + "_" + filtname + ".fit"), combine="median", rdnoise=8.1, gain=2.867)
+    iraf.images.immatch.imcombine(input=("@" + imagelist), output=(basename + "_" + filtname + ".fit"),
+                                  combine="median", rdnoise=8.1, gain=2.867)
     iraf.unlearn("imcombine")
 
 
 def astrometry(directory, filtname, basename, roughestimatera, roughestimatedec):
     os.chdir(directory + "/" + filtname)
-    os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 25 -t=2 %s" % (roughestimatera, roughestimatedec, "test.fit", basename + "_" + filtname + ".fit"))
+    os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 25 -t=2 %s" %
+              (roughestimatera, roughestimatedec, "test.fit", basename + "_" + filtname + ".fit"))
     os.system("mv test.new %s" % (basename + "_" + filtname + "_W.fit"))
-    os.system("rm %s %s %s %s %s %s %s %s %s %s" % ("test-ngc.png", "test.wcs", "test-objs.png", "test-indx.png", "test-indx.xyls", "test.rdls", "test.axy", "test.solved", "test.match", "test.corr"))
+    os.system("rm %s %s %s %s %s %s %s %s %s %s" %
+              ("test-ngc.png", "test.wcs", "test-objs.png", "test-indx.png", "test-indx.xyls", "test.rdls",
+               "test.axy", "test.solved", "test.match", "test.corr"))
     if not os.path.isfile(basename + "_" + filtname + "_W.fit"):
         os.system("cp %s %s" % ((basename + "_" + filtname + ".fit"), (basename + "_" + filtname + "_W.fit")))
 
@@ -204,7 +222,8 @@ def scaling(directory, filtnames, basename):
         narrowcatalogfile = ("phot%s" % currentnarr)
         continuumcatalogfile = ("phot%s" % currentcont)
         narrowcatalog = ascii.read(narrowcatalogfile, format='daophot', include_names=['XCENTER', 'YCENTER', 'FLUX'])
-        continuumcatalog = ascii.read(continuumcatalogfile, format='daophot', include_names=['XCENTER', 'YCENTER', 'FLUX'])
+        continuumcatalog = ascii.read(continuumcatalogfile, format='daophot',
+                                      include_names=['XCENTER', 'YCENTER', 'FLUX'])
         fluxnarr = []
         fluxcont = []
         ratio = []
@@ -241,8 +260,8 @@ def scaling(directory, filtnames, basename):
             i -= 1
         contdone = []
 
-        for i in range(0, len(prelimcont)):
-            result = narrtree.query(prelimcont[i], k=1, distance_upper_bound=1.2)
+        for j in range(0, len(prelimcont)):
+            result = narrtree.query(prelimcont[j], k=1, distance_upper_bound=1.2)
             result = result + (i,)
             contdone.append(result)
         i = len(contdone) - 1
@@ -252,8 +271,8 @@ def scaling(directory, filtnames, basename):
                 del contdone[i]
             i -= 1
         ratio = []
-        for i in range(0, len(contdone)):
-            tupleread = contdone[i]
+        for j in range(0, len(contdone)):
+            tupleread = contdone[j]
             fluxnarrpoint = narrowcatalog['FLUX'][tupleread[1]]
             fluxcontpoint = continuumcatalog['FLUX'][tupleread[2]]
             ratiocur = fluxnarrpoint / fluxcontpoint
@@ -314,7 +333,7 @@ def skyeval(imagename, skyregname):
     masked = np.array(masked)
     skyvals = []
     for i in range(0, len(masked)):
-        for j in range(0,len(masked[i])):
+        for j in range(0, len(masked[i])):
             if masked[i][j] != 0:
                 skyvals.append(masked[i][j])
     sky = np.median(skyvals)
@@ -333,7 +352,7 @@ def binimage(imname, binsize, binnedname):
     binim = np.sum(binim, axis=3)
     binim = np.sum(binim, axis=1)
     oldheader = fitsfile[0].header  # get header
-    oldheader.add_history("Binned in %s x %s bins" %(binsizestr, binsizestr))
+    oldheader.add_history("Binned in %s x %s bins" % (binsizestr, binsizestr))
     hdu = fits.PrimaryHDU(binim, header=oldheader)  # create fits HDU from binned image
     hdu.writeto(binnedname)
 
@@ -374,7 +393,7 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
         for j in range(0,len(image[i])):
             factor1 = image[i][j]
             factor2 = errim[i][j]
-            if ((factor1/(np.sqrt(factor2)))>=sigma):
+            if (factor1/(np.sqrt(factor2))) >= sigma:
                 counts += factor1
                 bins += 1
     flux = counts - (bins * skyval)
