@@ -21,6 +21,7 @@ def masterinteractivitycheck(typed):
                 "If you want replace the reference image for the alignment do it now editing the merged_b_f and "
                 "merged_b_f_sh lists putting the desired image first\t",
                 "If you want replace the coordinates file (aligcoordslog)\t"]
+    response = 'y'
     while True:
         response = raw_input(messages[typed])
         if response == 'n' or response == 'N':
@@ -35,7 +36,7 @@ def masterinteractivitycheck(typed):
 # ask whether user want something
 def ask(typed):
     messages = ["Do you want bias-subtraction?\t",
-                "Do you want flat-subtraction?\t",
+                "Do you want flat-fielding?\t",
                 "Do you want to align images?\t",
                 "Do you want to median combine the images?\t",
                 "Do you want to add WCS to the images?\t",
@@ -43,6 +44,7 @@ def ask(typed):
                 "Do you want to scale-subtract the continuum images from the narrow-band ones?\t",
                 "Do you want to follow the automated method to flux calibrate (y) [!!NOT YET SUPPORTED!!] "
                 "or input the extinction coefficient and Zero Point yourself (n)?\t"]
+    response = 'y'
     while True:
         response = raw_input(messages[typed])
         if response == 'n' or response == 'N':
@@ -64,10 +66,12 @@ def combinebias(biaslist):
 
 # user chooses filters to be used
 def choosefilters():
+    numfil = 0
     while True:
         numfil = input("Number of filters to be used (counting continuum):\t")
         if isinstance(numfil, int):
             break
+    numfil = int(numfil)
     filtnames = []
     i = 0
     while True:
@@ -140,7 +144,7 @@ def aligning(referenceim):
     while True:
         if correct == "n":
             sbox -= 1
-            bbox = 1.1 * bbox
+            bbox *= 1.1
             if counter > 1:
                 os.system("rm -rf *_sh.fit")
             iraf.unlearn("imalign")
@@ -160,6 +164,7 @@ def aligning(referenceim):
         failalign = raw_input("I cannot align the images. Either the max shift and FWHM was incorrect or the images "
                               "are bad.  Please align them yourself, replace the existing *_sh.fit files aand "
                               "hit enter")
+        print(failalign)
 
 
 def combining(imagelist, filtname, basename):
@@ -187,6 +192,7 @@ def scaling(directory, filtnames, basename):
     for i in filtnames:
         os.system("cp %s/%s/photometry1.mag ./phot%s" % (directory, i, i))
         os.system("cp %s/%s/%s ." % (directory, i, (basename + "_" + i + "_W_allstarfin.fit")))
+    numnarr = 0
     while True:
         print(filtnames)
         numnarr = input("Out of the shown filters, how many are narrowband (not continuum)?\t")
@@ -389,8 +395,8 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
     errim = np.array(errim[0].data)
     counts = 0
     bins = 0
-    for i in range(0,len(image)):
-        for j in range(0,len(image[i])):
+    for i in range(0, len(image)):
+        for j in range(0, len(image[i])):
             factor1 = image[i][j]
             factor2 = errim[i][j]
             if (factor1/(np.sqrt(factor2))) >= sigma:
@@ -403,7 +409,8 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
     return minstr, merror
 
 
-def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, narrbinned, contbinned, narrfinname, narrfinerrname):
+def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, narrbinned, contbinned, narrfinname,
+              narrfinerrname):
     narrskyval, narrskyerr = skyeval(narrim, narrskyreg)
     contskyval, contskyerr = skyeval(contim, contskyreg)
     binimage(narrim, binsize, narrbinned)
@@ -426,7 +433,7 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     narrfinerr = np.sqrt(np.add(narrdata, np.add(factd, np.add(facte, factf))))
     narrskystring = str(narrskyval)
     factorstring = str(f)
-    narrhead.add_history("Sky(=%s) and continuum (f=%s) subtracted" %(narrskystring, factorstring))
+    narrhead.add_history("Sky(=%s) and continuum (f=%s) subtracted" % (narrskystring, factorstring))
     hdu = fits.PrimaryHDU(narrfin, header=narrhead)
     hdu.writeto(narrfinname)
     errhdu = fits.PrimaryHDU(narrfinerr)
@@ -436,4 +443,3 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     mag = (np.multiply(instrmag, k)) + zp
     magerr = np.multiply(instrmag, k)
     return mag, magerr
-

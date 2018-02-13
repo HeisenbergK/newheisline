@@ -71,14 +71,14 @@ iraf.images()
 iraf.tv()
 
 interactivity = masterinteractivitycheck(0)
-
+imagedirectory = ""
 while True:
     imagedirectory = raw_input("Please insert the directory of the images:\t")
     if os.path.isdir(imagedirectory):
         break
 os.chdir(imagedirectory)
 
-iraf.noao.imred.ccdred.setParam('instrument',"ccddb$kpno/camera.dat")
+iraf.noao.imred.ccdred.setParam('instrument', "ccddb$kpno/camera.dat")
 
 bias = raw_input("Input Bias List:\t")
 biaslist = '@' + bias
@@ -266,13 +266,16 @@ for i in range(0, len(filtnames)):
         os.chdir(directory + "/" + filtnames[i])
         exptime = input("Enter exposure time of the %s image in seconds" % filtnames[i])
         exptime = int(exptime)
-        print("Now the %s image will be displayed. Please use the a keystroke on stars across the image to calculate the FWHM, and the m keystroke on background spots to calculate the backgound standard deviation. When you are done press q" %filtnames[i])
+        print("Now the %s image will be displayed. Please use the a keystroke on stars across the image to calculate "
+              "the FWHM, and the m keystroke on background spots to calculate the backgound standard deviation. When "
+              "you are done press q" % filtnames[i])
         os.system("ds9 &")
         time.sleep(10)
         iraf.images.tv.display(image=(basename+"_"+filtnames[i]+".fit"), frame=1, fill="Yes")
         iraf.images.tv.imexamine(input=(basename+"_"+filtnames[i]+".fit"), frame=1, keeplog="No")
         userpsf = input("Please enter your estimate of the FWHM (based on the above results)\t")
-        userbgsigma = input("Please enter your estimate of the backgound standard deviation (based on the above results)\t")
+        userbgsigma = input("Please enter your estimate of the backgound standard deviation "
+                            "(based on the above results)\t")
         iraf.unlearn("display")
         iraf.unlearn("datapars")
         iraf.unlearn("findpars")
@@ -300,20 +303,22 @@ for i in range(0, len(filtnames)):
         print(basename+"_"+filtnames[i]+"_W.fit")
         iraf.noao.digiphot.daophot.daofind(image=(wdihtdtn+"/"+basename+"_"+filtnames[i]+"_W.fit"),
                                            output="catalog1.coo", boundary="nearest", constant=0, verify="No")
-        iraf.noao.digiphot.daophot.centerpars.setParam('calgorithm',"centroid")
-        iraf.noao.digiphot.daophot.centerpars.setParam('cbox',5)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('salgorithm',"mode")
-        iraf.noao.digiphot.daophot.fitskypars.setParam('annulus',(3*userpsf))
-        iraf.noao.digiphot.daophot.fitskypars.setParam('dannulus',8)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('skyvalue',0)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('smaxiter',20)
-        iraf.noao.digiphot.daophot.photpars.setParam('weighting',"constant")
-        iraf.noao.digiphot.daophot.photpars.setParam('apertures',((2*userpsf)+3))
-        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W.fit"), coords="catalog1.coo", output="photometry1.mag", verify="No")
+        iraf.noao.digiphot.daophot.centerpars.setParam('calgorithm', "centroid")
+        iraf.noao.digiphot.daophot.centerpars.setParam('cbox', 5)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('salgorithm', "mode")
+        iraf.noao.digiphot.daophot.fitskypars.setParam('annulus', (3*userpsf))
+        iraf.noao.digiphot.daophot.fitskypars.setParam('dannulus', 8)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('skyvalue', 0)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('smaxiter', 20)
+        iraf.noao.digiphot.daophot.photpars.setParam('weighting', "constant")
+        iraf.noao.digiphot.daophot.photpars.setParam('apertures', ((2*userpsf)+3))
+        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W.fit"), coords="catalog1.coo",
+                                        output="photometry1.mag", verify="No")
     if hewantsallstar == "y":
         iraf.unlearn("display")
         iraf.unlearn("imexamine")
         os.chdir(directory + "/" + filtnames[i])
+        crowded = 'y'
         while True:
             crowded = raw_input("Do you think the %s image is crowded? y/n\t" % filtnames[i])
             if crowded == "y":
@@ -324,13 +329,16 @@ for i in range(0, len(filtnames)):
                 break
         exptime = input("Enter exposure time of the %s image in seconds" % filtnames[i])
         exptime = int(exptime)
-        print("Now the %s image will be displayed. Please use the a keystroke on stars across the image to calculate the FWHM, and the m keystroke on background spots to calculate the backgound standard deviation. When you are done press q" %filtnames[i])
+        print("Now the %s image will be displayed. Please use the a keystroke on stars across the image to calculate "
+              "the FWHM, and the m keystroke on background spots to calculate the backgound standard deviation. "
+              "When you are done press q" % filtnames[i])
         os.system("ds9 &")
         time.sleep(10)
         iraf.images.tv.display(image=(basename+"_"+filtnames[i]+".fit"), frame=1, fill="Yes")
         iraf.images.tv.imexamine(input=(basename+"_"+filtnames[i]+".fit"), frame=1, keeplog="No")
         userpsf = input("Please enter your estimate of the FWHM (based on the above results)\t")
-        userbgsigma = input("Please enter your estimate of the backgound standard deviation (based on the above results)\t")
+        userbgsigma = input("Please enter your estimate of the backgound standard deviation "
+                            "(based on the above results)\t")
         iraf.unlearn("display")
         iraf.unlearn("datapars")
         iraf.unlearn("findpars")
@@ -344,30 +352,39 @@ for i in range(0, len(filtnames)):
         iraf.unlearn("pstselect")
         iraf.unlearn("allstar")
         iraf.unlearn("pfmerge")
-        iraf.noao.digiphot.daophot.datapars.setParam('scale',1)
-        iraf.noao.digiphot.daophot.datapars.setParam('fwhmpsf',userpsf)
-        iraf.noao.digiphot.daophot.datapars.setParam('sigma',userbgsigma)
-        iraf.noao.digiphot.daophot.datapars.setParam('noise',"poisson")
-        iraf.noao.digiphot.daophot.datapars.setParam('emission',"Yes")
-        iraf.noao.digiphot.daophot.datapars.setParam('readnoise',8.1)
-        iraf.noao.digiphot.daophot.datapars.setParam('epadu',2.867)
-        iraf.noao.digiphot.daophot.datapars.setParam('itime',exptime)
-        iraf.noao.digiphot.daophot.findpars.setParam('threshold',4)
-        wdihtdtn=os.getcwd()
+        iraf.noao.digiphot.daophot.datapars.setParam('scale', 1)
+        iraf.noao.digiphot.daophot.datapars.setParam('fwhmpsf', userpsf)
+        iraf.noao.digiphot.daophot.datapars.setParam('sigma', userbgsigma)
+        iraf.noao.digiphot.daophot.datapars.setParam('noise', "poisson")
+        iraf.noao.digiphot.daophot.datapars.setParam('emission', "Yes")
+        iraf.noao.digiphot.daophot.datapars.setParam('readnoise', 8.1)
+        iraf.noao.digiphot.daophot.datapars.setParam('epadu', 2.867)
+        iraf.noao.digiphot.daophot.datapars.setParam('itime', exptime)
+        iraf.noao.digiphot.daophot.findpars.setParam('threshold', 4)
+        wdihtdtn = os.getcwd()
         print(wdihtdtn)
         print(basename+"_"+filtnames[i]+"_W.fit")
-        iraf.noao.digiphot.daophot.daofind(image=(wdihtdtn+"/"+basename+"_"+filtnames[i]+"_W.fit"), output="catalog1.coo", boundary="nearest", constant=0, verify="No")
-        iraf.noao.digiphot.daophot.centerpars.setParam('calgorithm',"centroid")
-        iraf.noao.digiphot.daophot.centerpars.setParam('cbox',5)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('salgorithm',"mode")
-        iraf.noao.digiphot.daophot.fitskypars.setParam('annulus',(3*userpsf))
-        iraf.noao.digiphot.daophot.fitskypars.setParam('dannulus',8)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('skyvalue',0)
-        iraf.noao.digiphot.daophot.fitskypars.setParam('smaxiter',20)
-        iraf.noao.digiphot.daophot.photpars.setParam('weighting',"constant")
-        iraf.noao.digiphot.daophot.photpars.setParam('apertures',((2*userpsf)+3))
-        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W.fit"), coords="catalog1.coo", output="photometry1.mag", verify="No")
-        notneeded = raw_input("You are now to select 90 stars that are very well-defined, based on their mesh profiles. The mesh profile of the next star is presented by pressing the n key on the ds9 window. The star is accepted by pressing a on the graph window or declined by pressing d on the graph window. When a message on the command window says that the max number of stars is reached, please go to the ds9 window and press q until the code resumes. If you happen to choose a wrong star, panic not. There will be a confirmation step later, where you will be able to remove the star from the list. Keep in mind that you have to note the ID of the star to do so. When you think you are ready press enter")
+        iraf.noao.digiphot.daophot.daofind(image=(wdihtdtn+"/"+basename+"_"+filtnames[i]+"_W.fit"),
+                                           output="catalog1.coo", boundary="nearest", constant=0, verify="No")
+        iraf.noao.digiphot.daophot.centerpars.setParam('calgorithm', "centroid")
+        iraf.noao.digiphot.daophot.centerpars.setParam('cbox', 5)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('salgorithm', "mode")
+        iraf.noao.digiphot.daophot.fitskypars.setParam('annulus', (3*userpsf))
+        iraf.noao.digiphot.daophot.fitskypars.setParam('dannulus', 8)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('skyvalue', 0)
+        iraf.noao.digiphot.daophot.fitskypars.setParam('smaxiter', 20)
+        iraf.noao.digiphot.daophot.photpars.setParam('weighting', "constant")
+        iraf.noao.digiphot.daophot.photpars.setParam('apertures', ((2*userpsf)+3))
+        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W.fit"), coords="catalog1.coo",
+                                        output="photometry1.mag", verify="No")
+        notneeded = raw_input("You are now to select 90 stars that are very well-defined, based on their mesh profiles."
+                              " The mesh profile of the next star is presented by pressing the n key on the ds9 "
+                              "window. The star is accepted by pressing a on the graph window or declined by pressing "
+                              "d on the graph window. When a message on the command window says that the max number "
+                              "of stars is reached, please go to the ds9 window and press q until the code resumes. "
+                              "If you happen to choose a wrong star, panic not. There will be a confirmation step"
+                              " later, where you will be able to remove the star from the list. Keep in mind that you "
+                              "have to note the ID of the star to do so. When you think you are ready press enter")
         os.system("ds9 &")
         time.sleep(10)
         iraf.images.tv.display(image=(basename+"_"+filtnames[i]+".fit"), frame=1, fill="Yes")
@@ -384,25 +401,46 @@ for i in range(0, len(filtnames)):
         iraf.noao.digiphot.daophot.daopars.setParam('sannulus', (3*userpsf))
         iraf.noao.digiphot.daophot.daopars.setParam('wsannulus', 8)
         iraf.noao.digiphot.daophot.daopars.setParam('maxiter', 100)
-        iraf.noao.digiphot.daophot.pstselect(image=(basename+"_"+filtnames[i]+".fit"), photfile="photometry1.mag", pstfile="selection.pst", maxnpsf=90, mkstars="Yes", interactive="Yes", verify="No")
-        selectioncleanup = raw_input("If you selected a star you think you shouldnt have selected please now find the file named selection.pst inside the filters folder and delete the line(s) beginning with the stars ID(s)")
-        iraf.noao.digiphot.daophot.psf(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile=("photometry1.mag"), pstfile="selection.pst", psfimage="model1.psf", opstfile="selectedbypsf1.pst", groupfile="group1.psg", matchbyid="No", interactive="No", mkstars="No", showplots="No", verify="No")
-        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile=("photometry1.mag"), psfimage="model1.psf", allstarfile="allstar1.als", rejfile="allstarrejects1.arj", subimage=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"), verify="No")
+        iraf.noao.digiphot.daophot.pstselect(image=(basename+"_"+filtnames[i]+".fit"), photfile="photometry1.mag",
+                                             pstfile="selection.pst", maxnpsf=90, mkstars="Yes", interactive="Yes",
+                                             verify="No")
+        selectioncleanup = raw_input("If you selected a star you think you shouldnt have selected please now find the"
+                                     " file named selection.pst inside the filters folder and delete the line(s) "
+                                     "beginning with the stars ID(s)")
+        iraf.noao.digiphot.daophot.psf(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile="photometry1.mag",
+                                       pstfile="selection.pst", psfimage="model1.psf", opstfile="selectedbypsf1.pst",
+                                       groupfile="group1.psg", matchbyid="No", interactive="No", mkstars="No",
+                                       showplots="No", verify="No")
+        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile="photometry1.mag",
+                                           psfimage="model1.psf", allstarfile="allstar1.als",
+                                           rejfile="allstarrejects1.arj",
+                                           subimage=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"), verify="No")
         # second mandatory run - 2
-        iraf.noao.digiphot.daophot.daofind(image=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"), output="catalog2.coo", boundary="nearest", constant=0, verify="No")
-        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"), coords="catalog2.coo", output="photometry2_1.mag", verify="No")
+        iraf.noao.digiphot.daophot.daofind(image=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"),
+                                           output="catalog2.coo", boundary="nearest", constant=0, verify="No")
+        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W_allstarsub1.fit"), coords="catalog2.coo",
+                                        output="photometry2_1.mag", verify="No")
         iraf.noao.digiphot.daophot.pfmerge(inphotfiles="allstar1.als, photometry2_1.mag", outphotfile="photometry2.mag")
-        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile="photometry2.mag", psfimage="model1.psf", allstarfile="allstar2.als", rejfile="allstarrejects2.arj", subimage=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"), verify="No")
+        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile="photometry2.mag",
+                                           psfimage="model1.psf", allstarfile="allstar2.als",
+                                           rejfile="allstarrejects2.arj",
+                                           subimage=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"), verify="No")
         # third mandatory run - 3
-        iraf.noao.digiphot.daophot.daofind(image=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"), output="catalog3.coo", boundary="nearest", constant=0, verify="No")
-        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"), coords="catalog3.coo", output="photometry3_1.mag", verify="No")
+        iraf.noao.digiphot.daophot.daofind(image=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"),
+                                           output="catalog3.coo", boundary="nearest", constant=0, verify="No")
+        iraf.noao.digiphot.daophot.phot(image=(basename+"_"+filtnames[i]+"_W_allstarsub2.fit"),
+                                        coords="catalog3.coo", output="photometry3_1.mag", verify="No")
         iraf.noao.digiphot.daophot.pfmerge(inphotfiles="allstar2.als, photometry3_1.mag", outphotfile="photometry3.mag")
-        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile="photometry3.mag", psfimage="model1.psf", allstarfile="allstar3.als", rejfile="allstarrejects3.arj", subimage=(basename+"_"+filtnames[i]+"_W_allstarsub3.fit"), verify="No")
-        os.system("cp %s %s" % ((basename+"_"+filtnames[i]+"_W_allstarsub3.fit"), (basename+"_"+filtnames[i]+"_W_allstarfin.fit")))
+        iraf.noao.digiphot.daophot.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"),
+                                           photfile="photometry3.mag", psfimage="model1.psf",
+                                           allstarfile="allstar3.als", rejfile="allstarrejects3.arj",
+                                           subimage=(basename+"_"+filtnames[i]+"_W_allstarsub3.fit"), verify="No")
+        os.system("cp %s %s" % ((basename+"_"+filtnames[i]+"_W_allstarsub3.fit"),
+                                (basename+"_"+filtnames[i]+"_W_allstarfin.fit")))
         allstarversion = 3
         # while True until interrupt until the user does indeed like the result
         while True:
-            os.system("ds9 %s" %(basename+"_"+filtnames[i]+"_W_allstarfin.fit"))
+            os.system("ds9 %s" % (basename+"_"+filtnames[i]+"_W_allstarfin.fit"))
             allstargood = raw_input("Did you like the result on allstar subtracted image?")
             if allstargood == "N":
                 allstargood = "n"
@@ -423,7 +461,8 @@ for i in range(0, len(filtnames)):
             iraf.daofind(image=lastsubtracted, output=newcatalog, boundary="nearest", constant=0, verify="No")
             iraf.phot(image=lastsubtracted, coords=newcatalog, output=newphotprim, verify="No")
             iraf.pfmerge(inphotfiles=photmergeimputs, outphotfile=newphot)
-            iraf.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile=newphot, psfimage="model1.psf", allstarfile=newallstar, rejfile=newrejects, subimage=newsubtracted, verify="No")
+            iraf.allstar(image=(basename+"_"+filtnames[i]+"_W.fit"), photfile=newphot, psfimage="model1.psf",
+                         allstarfile=newallstar, rejfile=newrejects, subimage=newsubtracted, verify="No")
             os.system("rm %s" % (basename+"_"+filtnames[i]+"_W_allstarfin.fit"))
             os.system("cp %s %s" % (newsubtracted, (basename+"_"+filtnames[i]+"_W_allstarfin.fit")))
             allstarversion += 1
@@ -450,6 +489,8 @@ os.chdir(directory)
 
 # Scaling
 wantsscaling = ask(5)
+packs = []
+narrows = []
 
 if wantsscaling == 'n':
     os.chdir("scaling")
@@ -503,6 +544,9 @@ if wantsflcal == 'y' or wantsflcal == 'n':
 
 # Determining Image names and sky regions
 print(filtnames)
+hafilname = ''
+siifilname = ''
+rfilname = ''
 
 while True:
     dummy = 0
@@ -560,17 +604,20 @@ os.system('cp ' + basename + "_" + rfilname + "_W_allstarfin.fit " + "results")
 os.chdir('results')
 mapdir = os.getcwd()
 
-print("Now the Ha image will be opened. Mark some sky regions on the image and save it as a .reg file in the folder where we are now (%s)." % mapdir)
+print("Now the Ha image will be opened. Mark some sky regions on the image and save it as a .reg "
+      "file in the folder where we are now (%s)." % mapdir)
 os.system("ds9 %s" % harawimname)
 dummy = raw_input("Enter the name of the file you just saved:\t")
 os.system("mv %s hasky.reg" % dummy)
 
-print("Now the SII image will be opened. Mark some sky regions on the image and save it as a .reg file in the folder where we are now (%s)" % mapdir)
+print("Now the SII image will be opened. Mark some sky regions on the image and save it as a .reg "
+      "file in the folder where we are now (%s)" % mapdir)
 os.system("ds9 %s" % siirawimname)
 dummy = raw_input("Enter the name of the file you just saved:\t")
 os.system("mv %s siisky.reg" % dummy)
 
-print("Now the r' image will be opened. Mark some sky regions on the image and save it as a .reg file in the folder where we are now (%s)" % mapdir)
+print("Now the r' image will be opened. Mark some sky regions on the image and save it as a .reg "
+      "file in the folder where we are now (%s)" % mapdir)
 os.system("ds9 %s" % rrawimname)
 dummy = raw_input("Enter the name of the file you just saved:\t")
 os.system("mv %s rsky.reg" % dummy)
@@ -581,8 +628,9 @@ os.system("mv %s rsky.reg" % dummy)
 analysissigma = raw_input("Enter the sigma level to be used for the analysis (I suggest at most 0.5 or 1):\t")
 analysissigma = float(analysissigma)
 
-siisigma = raw_input("Enter the sigma level to be used for the photometry of the SII image (I suggest at very most 0.5):\t")
-siisigma = float(analysissigma)
+siisigma = raw_input("Enter the sigma level to be used for the photometry of the SII image "
+                     "(I suggest at very most 0.5):\t")
+siisigma = float(siisigma)
 
 binsize = raw_input("Enter the bin size in pixels to be used for the analysis (I suggest at least 20):\t")
 binsize = int(binsize)
