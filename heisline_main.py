@@ -7,17 +7,8 @@ import fileinput
 import csv
 import progressbar
 
-heislineversion = 2.7
-date = "December 31 2017"
-
-'''
-filer = open("heisline_version")
-versioncont = []
-for line in filer:
-    versioncont.append(line.strip("\n"))
-filer.close()
-date = versioncont[1]
-'''
+heislineversion = 2.8
+date = "February 13 2018"
 
 bugger = open("heisline_bugs.log")
 buggercont = []

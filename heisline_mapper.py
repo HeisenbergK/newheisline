@@ -9,6 +9,8 @@ import pyregion
 # from matplotlib import axes
 # from matplotlib import cm
 
+heislineversion = 2.8
+date = "February 13 2018"
 
 class Error(Exception):
     """Base class for other exceptions"""

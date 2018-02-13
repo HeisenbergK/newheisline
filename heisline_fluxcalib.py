@@ -4,6 +4,9 @@ from pandas import *
 from scipy.stats import linregress
 import numpy as np
 
+heislineversion = 2.8
+date = "February 13 2018"
+
 
 def setstandardfiles():
     # create a list of standard star names and files

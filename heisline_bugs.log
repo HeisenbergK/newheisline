@@ -4,5 +4,6 @@
 2.3;DISCONTINUED;Binning bug crashes code;Reduction will occur properly. Results will sometimes not be produced.;IMPORTANT
 2.4;DISCONTINUED;Uncertainty propagation mistake in code.;Results can be trusted, their uncertainties not;IMPORTANT
 2.5;DISCONTINUED;Code not stable.;Reduction will occur properly. Results will not be produced.;URGENT
-2.6;OPPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
-2.7;OPPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
+2.6;DISCONTINUED;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
+2.7;OPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
+2.8;OPERATIONAL;To operate the velocity maps one needs extra training by the developer (not trivial operation);All producible results are to be trusted.;SCHEDULED
