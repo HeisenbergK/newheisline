@@ -571,7 +571,7 @@ for i in filtnames:
 
 
 os.system('mkdir results')
-filer = open("versioncontrol", 'rw')
+filer = open("versioncontrol", 'w')
 filer.write(str(heislineversion))
 filer.close()
 

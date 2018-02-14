@@ -10,6 +10,7 @@ import pyregion
 heislineversion = 2.8
 date = "February 13 2018"
 
+
 # check for interactivity
 def masterinteractivitycheck(typed):
     messages = ["Do you want interactive mode (to be able to replace files on fly)? (Y/n) \t",
@@ -419,6 +420,12 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     binimage(contim, binsize, contbinned)
     narrdata = fits.open(narrbinned)
     narrhead = narrdata[0].header
+    if "AIRMASS" in narrhead:
+        airmass = narrhead["AIRMASS"]
+        airmass = float(airmass)
+    else:
+        airmass = raw_input("Enter the airmass of the image %s" % str(narrim))
+        airmass = float(airmass)
     narrdata = np.array(narrdata[0].data)
     contdata = fits.open(contbinned)
     contdata = np.array(contdata[0].data)
@@ -442,6 +449,6 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     errhdu.writeto(narrfinerrname)
     binnedskyerr = np.multiply(asq, narrskyerr)
     instrmag, instrerr = instphot(narrim, sigma, facta, binnedskyerr, narrfinerrname)
-    mag = (np.multiply(instrmag, k)) + zp
-    magerr = np.multiply(instrmag, k)
+    mag = zp - np.multiply(airmass, k) + instrmag
+    magerr = instrerr
     return mag, magerr
