@@ -254,31 +254,31 @@ def scaling(directory, filtnames, basename):
         for item in prelimcont:
             excludecont.append(conttree.query(item, k=1, distance_upper_bound=1.2))
 
-        i = len(excludenarr) - 1
-        while i >= 0:
-            tupleread = excludenarr[i]
+        j = len(excludenarr) - 1
+        while j >= 0:
+            tupleread = excludenarr[j]
             if tupleread[0] == 0.0:
-                del excludenarr[i]
-            i -= 1
+                del excludenarr[j]
+            j -= 1
 
-        i = len(excludecont) - 1
-        while i >= 0:
-            tupleread = excludecont[i]
+        j = len(excludecont) - 1
+        while j >= 0:
+            tupleread = excludecont[j]
             if tupleread[0] == 0.0:
-                del excludecont[i]
-            i -= 1
+                del excludecont[j]
+            j -= 1
         contdone = []
 
         for j in range(0, len(prelimcont)):
             result = narrtree.query(prelimcont[j], k=1, distance_upper_bound=1.2)
-            result = result + (i,)
+            result = result + (j,)
             contdone.append(result)
-        i = len(contdone) - 1
-        while i >= 0:
-            tupleread = contdone[i]
+        j = len(contdone) - 1
+        while j >= 0:
+            tupleread = contdone[j]
             if np.isinf(tupleread[0]):
-                del contdone[i]
-            i -= 1
+                del contdone[j]
+            j -= 1
         ratio = []
         for j in range(0, len(contdone)):
             tupleread = contdone[j]
@@ -401,8 +401,8 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
     for i in range(0, len(image)):
         for j in range(0, len(image[i])):
             factor1 = image[i][j]
-            factor2 = errim[i][j]
-            if (factor1/(np.sqrt(factor2))) >= sigma:
+            factor2 = np.abs(errim[i][j])
+            if np.divide(factor1, (np.sqrt(factor2))) >= sigma:
                 counts += factor1
                 bins += 1
     flux = counts - (bins * skyval)

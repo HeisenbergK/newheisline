@@ -650,7 +650,7 @@ hamag, hamagerr = narrowtot(harawimname, "hasky.reg", rrawimname, "rsky.reg", ha
 siimag, siimagerr = narrowtot(siirawimname, "siisky.reg", rrawimname, "rsky.reg", siik, siizp, siisigma, binsize, siif,
                               siibinned, rbinnednext, siisciname, siierrname)
 
-filer = open("SNRphotometry.cat", 'rw')
+filer = open("SNRphotometry.cat", 'w')
 filer.write(basename)
 filer.write('Ha AB Magnitude\tHa AB Magnitude Uncertainty')
 filer.write('%.8f\t%.8f' % (hamag, hamagerr))
