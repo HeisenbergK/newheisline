@@ -233,9 +233,6 @@ def scaling(directory, filtnames, basename):
         narrowcatalog = ascii.read(narrowcatalogfile, format='daophot', include_names=['XCENTER', 'YCENTER', 'FLUX'])
         continuumcatalog = ascii.read(continuumcatalogfile, format='daophot',
                                       include_names=['XCENTER', 'YCENTER', 'FLUX'])
-        fluxnarr = []
-        fluxcont = []
-        ratio = []
         xcennarr = narrowcatalog['XCENTER']
         ycennarr = narrowcatalog['YCENTER']
         xcencont = continuumcatalog['XCENTER']
@@ -391,24 +388,29 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
         epadu = float(epadu)
 
     expo = float(expo)
+    print("Exposure time: %.2f s, Gain: %.2f epadu" % (expo, epadu))
     image = np.array(image[0].data)
     if (len(errim) != len(image)) or (len(errim[0]) != len(image[0])):
         errimname = imname
     errim = fits.open(errimname)
     errim = np.array(errim[0].data)
-    counts = 0
-    bins = 0
+    imcount = []
+    errcount = []
     for i in range(0, len(image)):
         for j in range(0, len(image[i])):
-            factor1 = image[i][j]
-            factor2 = np.abs(errim[i][j])
-            if np.divide(factor1, (np.sqrt(factor2))) >= sigma:
-                counts += factor1
-                bins += 1
-    flux = counts - (bins * skyval)
+            imcount.append(image[i][j])
+            errcount.append(errim[i][j])
+    sign = np.divide(imcount, np.sqrt(np.abs(errcount)))
+    counts = []
+    for i in range(0, len(sign)):
+        if sign[i] >= sigma:
+            counts.append(imcount[i])
+    bins = len(counts)
+    flux = sum(counts) - (bins * skyval)
     error = np.sqrt((np.divide(flux, epadu)) + (bins * skyerr * skyerr))
     minstr = (2.5 * np.log10(expo)) - (2.5 * np.log10(flux))
-    merror = 1.0857 * (np.divide(error, flux))
+    merror = np.sqrt(np.square(1.0857 * (np.divide(error, flux))))
+    print("Flux=%s Error=%s" % (str(flux), str(error)))
     return minstr, merror
 
 
@@ -449,6 +451,7 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     errhdu.writeto(narrfinerrname)
     binnedskyerr = np.multiply(asq, narrskyerr)
     instrmag, instrerr = instphot(narrim, sigma, facta, binnedskyerr, narrfinerrname)
+    print (instrmag, instrerr)
     mag = zp - np.multiply(airmass, k) + instrmag
     magerr = instrerr
     return mag, magerr
