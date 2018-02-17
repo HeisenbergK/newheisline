@@ -1,16 +1,18 @@
 import numpy as np
-# import os
+import os
 from astropy.io import fits
 import matplotlib.pyplot as plt
 from scipy.interpolate import sproot, splrep, splev
 # from scipy.interpolate import interp1d
 # from mpl_toolkits.mplot3d import Axes3D
-import pyregion
+# import pyregion
 # from matplotlib import axes
 # from matplotlib import cm
+from zscale import *
 
 heislineversion = 2.9
 date = "February 17 2018"
+
 
 class Error(Exception):
     """Base class for other exceptions"""
@@ -21,11 +23,26 @@ class NotAnOption(Error):
     """Raised when the input value is not an option"""
     pass
 
-gridfolder = 'griddata/'
-haimagename = 'HaFullSci.fit'
-haerrorname = 'HaFullErr.fit'
-siiimagename = 'SIIFullSci.fit'
-siierrorname = 'SIIFullErr.fit'
+locdir = os.getcwd()
+locdir += '/'
+
+imagedirectory = ""
+while True:
+    imagedirectory = raw_input("Please insert the results directory of your analyzed data:\t")
+    if os.path.isdir(imagedirectory):
+        break
+os.chdir(imagedirectory)
+
+basename = raw_input("Please enter the base name of your SNR:\t")
+hafilname = raw_input("Please enter the name of the Ha filter:\t")
+siifilname = raw_input("Please enter the name of the SII filter:\t")
+
+
+gridfolder = locdir + 'griddata/'
+haimagename = basename + '_' + hafilname + "_W_allstarfin_binned_sci.fit"
+haerrorname = basename + '_' + hafilname + "_W_allstarfin_binned_err.fit"
+siiimagename = basename + '_' + siifilname + "_W_allstarfin_binned_sci.fit"
+siierrorname = basename + '_' + siifilname + "_W_allstarfin_binned_err.fit"
 contourfileds9 = 'photometry.reg'
 
 
@@ -285,16 +302,19 @@ ratioerr = ratio3d[1]
 fig = plt.figure()
 preplot = fig.add_subplot(1, 2, 1)
 preplot.set_title("[SII]/Ha before S/N filtering")
-preplot.imshow(preratioval, interpolation='nearest')
+zmin1, zmax1 = zscale_range(preratioval)
+preplot.imshow(preratioval, interpolation='nearest', vmin=zmin1, vmax=zmax1)
 postplot = fig.add_subplot(1, 2, 2)
 postplot.set_title("[SII]/Ha after S/N filtering")
-postplot.imshow(ratioval, interpolation='nearest')
+zmin2, zmax2 = zscale_range(ratioval)
+postplot.imshow(ratioval, interpolation='nearest', vmin=zmin2, vmax=zmax2)
 plt.show()
 # '''
 
 # heatmap ratio
 plt.clf()
-colorbarred = plt.imshow(ratioval, interpolation='nearest')
+zmin3, zmax3 = zscale_range(ratioval)
+colorbarred = plt.imshow(ratioval, interpolation='nearest', vmin=zmin3, vmax=zmax3)
 plt.colorbar()
 plt.show()
 
@@ -373,17 +393,20 @@ ratiominus = np.subtract(ratioval, ratioerr)
 # ratiominus=np.where(ratiominus>=0.0, ratiominus, np.nan)
 ratioval = np.where(ratioval >= 0.000000000001, ratioval, np.nan)
 plt.clf()
-colorbarred = plt.imshow(ratioval, interpolation='nearest')
+zmin4, zmax4 = zscale_range(ratioval)
+colorbarred = plt.imshow(ratioval, interpolation='nearest', vmin=zmin4, vmax=zmax4)
 plt.colorbar()
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(ratioplus, interpolation='nearest')
+zmin5, zmax5 = zscale_range(ratioplus)
+colorbarred = plt.imshow(ratioplus, interpolation='nearest', vmin=zmin5, vmax=zmax5)
 plt.colorbar()
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(ratiominus, interpolation='nearest')
+zmin6, zmax6 = zscale_range(ratioplus)
+colorbarred = plt.imshow(ratiominus, interpolation='nearest', vmin=zmin6, vmax=zmax6)
 plt.colorbar()
 plt.show()
 
@@ -450,14 +473,15 @@ for i in range(0, dimratiominus[0]):
 
 plt.clf()
 f_xray = fits.open(haimagename)
-contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
-patch_list, text_list = contourloaded.get_mpl_patches_texts()
+# contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
+# patch_list, text_list = contourloaded.get_mpl_patches_texts()
 colorbarred = plt.subplot(111)
-tobar = colorbarred.imshow(velocity[0], interpolation='nearest', origin='lower')
-for p in patch_list:
-    colorbarred.add_patch(p)
-for t in text_list:
-    colorbarred.add_artist(t)
+zmin7, zmax7 = zscale_range(velocity[0])
+tobar = colorbarred.imshow(velocity[0], interpolation='nearest', origin='lower', vmin=zmin7, vmax=zmax7)
+# for p in patch_list:
+#     colorbarred.add_patch(p)
+# for t in text_list:
+#     colorbarred.add_artist(t)
 # plt.colorbar(ax=tobar)
 plt.title("Velocity 1")
 plt.xlabel("XPixel")
@@ -465,7 +489,8 @@ plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocity[0], interpolation='nearest')
+zmin8, zmax8 = zscale_range(velocity[0])
+colorbarred = plt.imshow(velocity[0], interpolation='nearest', vmin=zmin8, vmax=zmax8)
 plt.colorbar()
 plt.title("Velocity 1")
 plt.xlabel("XPixel")
@@ -473,31 +498,34 @@ plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocityplus[0], interpolation='nearest')
+zmin9, zmax9 = zscale_range(velocityplus[0])
+colorbarred = plt.imshow(velocityplus[0], interpolation='nearest', vmin=zmin9, vmax=zmax9)
 plt.colorbar()
-plt.title("Velocity 1 Upper Bound @ 1sigma")
+plt.title("Velocity 1 Upper Bound @ %.1f sigma Ha" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocityminus[0], interpolation='nearest')
+zmin10, zmax10 = zscale_range(velocityminus[0])
+colorbarred = plt.imshow(velocityminus[0], interpolation='nearest', vmin=zmin10, vmax=zmax10)
 plt.colorbar()
-plt.title("Velocity 1 Lower Bound @ 1sigma")
+plt.title("Velocity 1 Lower Bound @ %.1f sigma Ha" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
 f_xray = fits.open(haimagename)
-contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
-patch_list, text_list = contourloaded.get_mpl_patches_texts()
+# contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
+# patch_list, text_list = contourloaded.get_mpl_patches_texts()
 colorbarred = plt.subplot(111)
-tobar = colorbarred.imshow(velocity[1], interpolation='nearest', origin='lower')
-for p in patch_list:
-    colorbarred.add_patch(p)
-for t in text_list:
-    colorbarred.add_artist(t)
+zmin11, zmax11 = zscale_range(velocity[1])
+tobar = colorbarred.imshow(velocity[1], interpolation='nearest', origin='lower', vmin=zmin11, vmax=zmax11)
+# for p in patch_list:
+#     colorbarred.add_patch(p)
+# for t in text_list:
+#     colorbarred.add_artist(t)
 # plt.colorbar(ax=tobar)
 plt.title("Velocity 2")
 plt.xlabel("XPixel")
@@ -505,7 +533,8 @@ plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocity[1], interpolation='nearest')
+zmin12, zmax12 = zscale_range(velocity[1])
+colorbarred = plt.imshow(velocity[1], interpolation='nearest', vmin=zmin12, vmax=zmax12)
 plt.colorbar()
 plt.title("Velocity 2")
 plt.xlabel("XPixel")
@@ -513,17 +542,19 @@ plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocityplus[1], interpolation='nearest')
+zmin13, zmax13 = zscale_range(velocityplus[1])
+colorbarred = plt.imshow(velocityplus[1], interpolation='nearest', vmin=zmin13, vmax=zmax13)
 plt.colorbar()
-plt.title("Velocity 2 Upper Bound @ 1sigma")
+plt.title("Velocity 2 Upper Bound @ %.1f sigma Ha" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-colorbarred = plt.imshow(velocityminus[1], interpolation='nearest')
+zmin14, zmax14 = zscale_range(velocityminus[1])
+colorbarred = plt.imshow(velocityminus[1], interpolation='nearest', vmin=zmin14, vmax=zmax14)
 plt.colorbar()
-plt.title("Velocity 2 Lower Bound @ 1sigma")
+plt.title("Velocity 2 Lower Bound @ %.1f sigma Ha" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
