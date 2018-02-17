@@ -66,16 +66,16 @@ airmass = 1.0
 # atmospheric extinction coefficient
 k = 0.099
 # zero-points
-haZP = 4.957
-siiZP = 5.077
+haZP = 19.0
+siiZP = 19.0
 # signal to noise thresholds
 ratiosnthresh = 0.0
 hasnthresh = 0.5
 siisnthresh = 0.0
 # medium density in cm^-3
-density = 100
+density = 100.0
 # magnetic field in uG
-Bkept = 5
+Bkept = 0.5
 
 # read data
 while True:
@@ -137,7 +137,7 @@ while True:
 while True:
     entered = raw_input("Density in cm^{-3} (%.0f):\t" % density)
     try:
-        density = int(entered)
+        density = float(entered)
         if density in densityaccept:
             break
         else:
@@ -150,7 +150,7 @@ while True:
 while True:
     entered = raw_input("Magnetic Field in uG (%.0f):\t" % Bkept)
     try:
-        Bkept = int(entered)
+        Bkept = float(entered)
         if Bkept in Baccept:
             break
         else:
