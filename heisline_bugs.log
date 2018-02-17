@@ -7,3 +7,4 @@
 2.6;DISCONTINUED;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
 2.7;OPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
 2.8;OPERATIONAL;To operate the velocity maps one needs extra training by the developer (not trivial operation);All producible results are to be trusted.;SCHEDULED
+2.9;OPERATIONAL;Added full flux calibration capabilities;All producible results are to be trusted.;SCHEDULED

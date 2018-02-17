@@ -7,8 +7,8 @@ from astropy.io import ascii, fits
 import scipy.spatial
 import pyregion
 
-heislineversion = 2.8
-date = "February 13 2018"
+heislineversion = 2.9
+date = "February 17 2018"
 
 
 # check for interactivity
@@ -45,8 +45,9 @@ def ask(typed):
                 "Do you want to add WCS to the images?\t",
                 "Do you want to calculate the scaling factor of the continuum images?\t",
                 "Do you want to scale-subtract the continuum images from the narrow-band ones?\t",
-                "Do you want to follow the automated method to flux calibrate (y) [!!NOT YET SUPPORTED!!] "
-                "or input the extinction coefficient and Zero Point yourself (n)?\t"]
+                "Do you want to follow the automated method to flux calibrate (y) or input the extinction "
+                "coefficient and Zero Point yourself (n)?\t",
+                "Do you want to pivot the atmospheric extinction coefficient?\t"]
     response = 'y'
     while True:
         response = raw_input(messages[typed])
@@ -406,7 +407,9 @@ def instphot(imname, sigma, skyval, skyerr, errimname="None"):
         if sign[i] >= sigma:
             counts.append(imcount[i])
     bins = len(counts)
-    flux = sum(counts) - (bins * skyval)
+    totcount = sum(counts)
+    print("Counts Total= %s BinsTotal= %s Sky= %s" % (str(totcount), str(bins), str(skyval)))
+    flux = totcount - (bins * skyval)
     error = np.sqrt((np.divide(flux, epadu)) + (bins * skyerr * skyerr))
     minstr = (2.5 * np.log10(expo)) - (2.5 * np.log10(flux))
     merror = np.sqrt(np.square(1.0857 * (np.divide(error, flux))))
@@ -449,8 +452,8 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     hdu.writeto(narrfinname)
     errhdu = fits.PrimaryHDU(narrfinerr)
     errhdu.writeto(narrfinerrname)
-    binnedskyerr = np.multiply(asq, narrskyerr)
-    instrmag, instrerr = instphot(narrim, sigma, facta, binnedskyerr, narrfinerrname)
+    # binnedskyerr = np.multiply(asq, narrskyerr)
+    instrmag, instrerr = instphot(narrfinname, sigma, 0, (asq*narrskyerr), narrfinerrname)
     print (instrmag, instrerr)
     mag = zp - np.multiply(airmass, k) + instrmag
     magerr = instrerr

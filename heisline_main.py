@@ -7,8 +7,8 @@ import fileinput
 import csv
 import progressbar
 
-heislineversion = 2.8
-date = "February 13 2018"
+heislineversion = 2.9
+date = "February 17 2018"
 
 bugger = open("heisline_bugs.log")
 buggercont = []
@@ -509,7 +509,7 @@ wantsflcal = ask(7)
 kabs = []
 ZP = []
 
-if wantsflcal == 'not yet supported':
+if wantsflcal == 'y':
     fluxcaldir = raw_input("Enter folder that contains the standard spectra and filter transmittances")
     os.chdir(fluxcaldir)
     transfiles = []
@@ -521,10 +521,25 @@ if wantsflcal == 'not yet supported':
         specnames.append(i+'.csv')
 
     stdmags = getstandardmags(filtname=narrows, filtfilename=transfiles, starname=starnames, specfilename=specnames)
-    instmags, ams = getinstrumentfluxes(filtname=narrows, starname=starnames)
-    calibrationmaster = fluxcalibration(filtname=narrows, stdmags=stdmags, insmags=instmags, airmasses=ams)
+    print(stdmags)
+    instmags, ams, muls = getinstrumentfluxes(filtname=narrows, starname=starnames)
+    pivotornot = ask(8)
+    if pivotornot == 'y':
+        katm = []
+        for i in narrows:
+            currk = raw_input("Please enter the atmospheric extinction coefficient for filter %s:\t" % i)
+            currk = float(currk)
+            katm.append(currk)
+        calibrationmaster = fluxcalibrationpivot(filtname=narrows, stdmags=stdmags, insmags=instmags, airmasses=ams,
+                                                 stars=starnames, katm=katm)
+    else:
+        calibrationmaster = fluxcalibration(filtname=narrows, stdmags=stdmags, insmags=instmags, airmasses=ams,
+                                            stars=starnames)
+    print(calibrationmaster)
+    calibrationmaster.to_csv(path_or_buf="calibration.csv")
+    dummy = raw_input("Press enter to continue")
 
-if wantsflcal == 'y' or wantsflcal == 'n':
+if wantsflcal == 'n':
     for i in narrows:
         dummy = input("Enter the absorption coefficient for filter %s:\t" % i)
         kabs.append(dummy)
@@ -650,10 +665,14 @@ hamag, hamagerr = narrowtot(harawimname, "hasky.reg", rrawimname, "rsky.reg", ha
 siimag, siimagerr = narrowtot(siirawimname, "siisky.reg", rrawimname, "rsky.reg", siik, siizp, siisigma, binsize, siif,
                               siibinned, rbinnednext, siisciname, siierrname)
 
-filer = open("SNRphotometry.cat", 'w')
-filer.write(basename)
-filer.write('Ha AB Magnitude\tHa AB Magnitude Uncertainty')
-filer.write('%.8f\t%.8f' % (hamag, hamagerr))
-filer.write('SII AB Magnitude\tSII AB Magnitude Uncertainty')
-filer.write('%.8f\t%.8f' % (siimag, siimagerr))
+filer = open("SNRphotometry.cat", 'a')
+filer.write('Heiseline Version:\t%s\n' % str(heislineversion))
+filer.write(basename + '\n')
+filer.write('All Magnitudes in AB (if given flux calibration in AB)\n')
+filer.write("Ha\n")
+filer.write('Magnitude\tMagnitude Uncertainty\n')
+filer.write('%.8f\t%.8f\n' % (hamag, hamagerr))
+filer.write("SII\n")
+filer.write('Magnitude\tMagnitude Uncertainty\n')
+filer.write('%.8f\t%.8f\n' % (siimag, siimagerr))
 filer.close()
