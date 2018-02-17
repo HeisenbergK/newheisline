@@ -10,6 +10,7 @@ from photutils import MMMBackground
 from photutils.psf import IntegratedGaussianPRF, DAOGroup
 from photutils.detection import DAOStarFinder
 from astropy.modeling.fitting import LevMarLSQFitter
+from zscale import *
 
 heislineversion = 2.9
 date = "February 17 2018"
@@ -143,14 +144,16 @@ def getinstrumentfluxes(filtname, starname):
                 plt.clf()
                 bkgest = mmm_bkg.calc_background(readdata)
                 todisp = np.subtract(readdata, bkgest)
-                plt.imshow(todisp, cmap='viridis', aspect=1, origin='lower')
+                zmin, zmax = zscale_range(todisp)
+                plt.imshow(todisp, cmap='gray', aspect=1, origin='lower', vmin=zmin, vmax=zmax)
                 for entry in range(0, len(newtable['id'])):
                     xpos = newtable['x_fit'][entry]
                     ypos = newtable['y_fit'][entry]
                     fluxin = newtable['flux_fit'][entry]
                     num = entry + 1
                     print("%s %s %s %s" % (str(num), str(xpos), str(ypos), str(fluxin)))
-                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=fwhm, xycoords='data')
+                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=fwhm, xycoords='data',
+                             color='green')
                 plt.show()
                 num = 1
                 while True:
