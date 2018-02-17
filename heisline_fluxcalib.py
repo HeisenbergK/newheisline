@@ -12,8 +12,8 @@ from photutils.detection import DAOStarFinder
 from astropy.modeling.fitting import LevMarLSQFitter
 from zscale import *
 
-heislineversion = 2.9
-date = "February 17 2018"
+heislineversion = 3.0
+date = "February 18 2018"
 
 # light speed in angstroems per second
 c = 2.998E+18
@@ -55,7 +55,27 @@ def getstandardmags(filtname, filtfilename, starname, specfilename):
             plt.xlabel(r'Wavelength in $\AA$')
             plt.ylabel(r'Hayes Latham mag (blame massey)')
             plt.show()
-            star[:, 1] = np.power(10, (-(star[:, 1]+48.655)/2.5))  # star spectrum in erg/s/cm^2/Hz
+            ctable = [-0.163, -0.044, 0.055, 0.309]
+            atable = np.subtract(57.5, (np.subtract(8.9, ctable)))
+            while True:
+                filtband = raw_input("Which band does the %s filter belong in? (B,V,R,I)\t" % str(filtname[i]))
+                if filtband == "B" or filtband == "b":
+                    filtband = 0
+                    break
+                elif filtband == "V" or filtband == "v":
+                    filtband = 1
+                    break
+                elif filtband == "R" or filtband == "r":
+                    filtband = 2
+                    break
+                elif filtband == "I" or filtband == "i":
+                    filtband = 3
+                    break
+                else:
+                    print("Wrong Input")
+            atouse = atable[filtband]
+            atouse = float(atouse)
+            star[:, 1] = np.power(10, (-(star[:, 1]+atouse)/2.5))  # star spectrum in erg/s/cm^2/Hz
             star[:, 1] = c*(np.divide(star[:, 1], (np.square(star[:, 0]))))
             filt_interp = np.interp(star[:, 0], filt[:, 0], filt[:, 1], left=0.0, right=0.0)
             throughput = filt_interp * star[:, 1]

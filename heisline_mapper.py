@@ -10,8 +10,8 @@ from scipy.interpolate import sproot, splrep, splev
 # from matplotlib import cm
 from zscale import *
 
-heislineversion = 2.9
-date = "February 17 2018"
+heislineversion = 3.0
+date = "February 18 2018"
 
 
 class Error(Exception):
@@ -63,8 +63,12 @@ Baccept = [0.001, 0.01, 0.05, 0.1, 0.2, 0.4, 0.5, 1, 10]
 
 # Photometric Data etc.
 airmass = 1.0
+haairmass = 1.0
+siiairmass = 1.0
 # atmospheric extinction coefficient
 k = 0.099
+hak = 0.099
+siik = 0.099
 # zero-points
 haZP = 19.0
 siiZP = 19.0
@@ -79,17 +83,33 @@ Bkept = 0.5
 
 # read data
 while True:
-    entered = raw_input("Airmass (%.1f):\t" % airmass)
+    entered = raw_input("Ha Airmass (%.1f):\t" % airmass)
     try:
-        airmass = float(entered)
+        haairmass = float(entered)
         break
     except ValueError:
         print("Wrong Input")
 
 while True:
-    entered = raw_input("Extinction Coefficient (k) (%.3f):\t" % k)
+    entered = raw_input("SII Airmass (%.1f):\t" % airmass)
     try:
-        k = float(entered)
+        siiairmass = float(entered)
+        break
+    except ValueError:
+        print("Wrong Input")
+
+while True:
+    entered = raw_input("Ha Extinction Coefficient (k) (%.3f):\t" % k)
+    try:
+        hak = float(entered)
+        break
+    except ValueError:
+        print("Wrong Input")
+
+while True:
+    entered = raw_input("SII Extinction Coefficient (k) (%.3f):\t" % k)
+    try:
+        siik = float(entered)
         break
     except ValueError:
         print("Wrong Input")
@@ -135,7 +155,7 @@ while True:
         print("Wrong Input")
 
 while True:
-    entered = raw_input("Density in cm^{-3} (%.0f):\t" % density)
+    entered = raw_input("Density in cm^{-3} (%.1f):\t" % density)
     try:
         density = float(entered)
         if density in densityaccept:
@@ -148,7 +168,7 @@ while True:
         print("Density must be one of: ", densityaccept)
 
 while True:
-    entered = raw_input("Magnetic Field in uG (%.0f):\t" % Bkept)
+    entered = raw_input("Magnetic Field in uG (%.1f):\t" % Bkept)
     try:
         Bkept = float(entered)
         if Bkept in Baccept:
@@ -192,7 +212,7 @@ def zerobad(image, error):
 # convert images from counts to flux
 def toflux(imlist, kabs, amass, zerop):
     return np.multiply(1, np.multiply((np.power(10.0, (kabs*amass/2.5))),
-                                      (np.multiply((np.power(10.0, (zerop/2.5))), imlist))))
+                                      (np.multiply((np.power(10.0, (-zerop/2.5))), imlist))))
 
 
 # In[41]:
@@ -253,13 +273,13 @@ siisci = read2d(siiimagename)[0]
 # read sii error image
 siierr = read2d(siierrorname)[0]
 # convert ha science image to physial units
-hasci = toflux(hasci, k, airmass, haZP)
+hasci = toflux(hasci, hak, haairmass, haZP)
 # convert ha error image to physial units
-haerr = toflux(haerr, k, airmass, haZP)
+haerr = toflux(haerr, hak, haairmass, haZP)
 # convert sii science image to physial units
-siisci = toflux(siisci, k, airmass, siiZP)
+siisci = toflux(siisci, siik, siiairmass, siiZP)
 # convert sii error image to physial units
-siierr = toflux(siierr, k, airmass, siiZP)
+siierr = toflux(siierr, siik, siiairmass, siiZP)
 # remove bad pixels from ha image
 ha3d = zerobad(hasci, haerr)
 hasci = ha3d[0]
@@ -314,6 +334,7 @@ plt.show()
 # heatmap ratio
 plt.clf()
 zmin3, zmax3 = zscale_range(ratioval)
+plt.title("Filtered ratio of [SII]/Ha")
 colorbarred = plt.imshow(ratioval, interpolation='nearest', vmin=zmin3, vmax=zmax3)
 plt.colorbar()
 plt.show()
@@ -394,18 +415,21 @@ ratiominus = np.subtract(ratioval, ratioerr)
 ratioval = np.where(ratioval >= 0.000000000001, ratioval, np.nan)
 plt.clf()
 zmin4, zmax4 = zscale_range(ratioval)
+plt.title("Filtered [SII]/Ha ratio")
 colorbarred = plt.imshow(ratioval, interpolation='nearest', vmin=zmin4, vmax=zmax4)
 plt.colorbar()
 plt.show()
 
 plt.clf()
 zmin5, zmax5 = zscale_range(ratioplus)
+plt.title("Filtered [SII]/Ha ratio upper bound")
 colorbarred = plt.imshow(ratioplus, interpolation='nearest', vmin=zmin5, vmax=zmax5)
 plt.colorbar()
 plt.show()
 
 plt.clf()
 zmin6, zmax6 = zscale_range(ratioplus)
+plt.title("Filtered [SII]/Ha ratio lower bound")
 colorbarred = plt.imshow(ratiominus, interpolation='nearest', vmin=zmin6, vmax=zmax6)
 plt.colorbar()
 plt.show()
@@ -427,6 +451,8 @@ def determinevelocity(ratiotosub):
         return np.nan
     newmodelratiotck = splrep(modelvelocity, np.subtract(modelratio, ratiotosub))
     velocities = sproot(newmodelratiotck)
+    print("Solutions:")
+    print(velocities)
     velocitiesret = [np.min(velocities), np.max(velocities)]
     return velocitiesret
 
@@ -445,7 +471,7 @@ def determinevelocitycap(ratiotosub):
 
 for i in range(0, dimratioval[0]):
     for j in range(0, dimratioval[1]):
-        pixelvel = determinevelocity(ratioval[i, j])
+        pixelvel = determinevelocitycap(ratioval[i, j])
         if np.any(np.isnan(pixelvel)):
             velocity[0, i, j] = np.nan
             velocity[1, i, j] = np.nan
@@ -476,41 +502,37 @@ f_xray = fits.open(haimagename)
 # contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
 # patch_list, text_list = contourloaded.get_mpl_patches_texts()
 colorbarred = plt.subplot(111)
-zmin7, zmax7 = zscale_range(velocity[0])
-tobar = colorbarred.imshow(velocity[0], interpolation='nearest', origin='lower', vmin=zmin7, vmax=zmax7)
+tobar = colorbarred.imshow(velocity[0], interpolation='nearest', origin='lower')
 # for p in patch_list:
 #     colorbarred.add_patch(p)
 # for t in text_list:
 #     colorbarred.add_artist(t)
 # plt.colorbar(ax=tobar)
-plt.title("Velocity 1")
+plt.title("Velocity 1 in km/s")
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin8, zmax8 = zscale_range(velocity[0])
-colorbarred = plt.imshow(velocity[0], interpolation='nearest', vmin=zmin8, vmax=zmax8)
+colorbarred = plt.imshow(velocity[0], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 1")
+plt.title("Velocity 1 in km/s")
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin9, zmax9 = zscale_range(velocityplus[0])
-colorbarred = plt.imshow(velocityplus[0], interpolation='nearest', vmin=zmin9, vmax=zmax9)
+colorbarred = plt.imshow(velocityplus[0], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 1 Upper Bound @ %.1f sigma Ha" % float(hasnthresh))
+plt.title("Velocity 1 Upper Bound @ %.1f sigma Ha in km/s" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin10, zmax10 = zscale_range(velocityminus[0])
-colorbarred = plt.imshow(velocityminus[0], interpolation='nearest', vmin=zmin10, vmax=zmax10)
+colorbarred = plt.imshow(velocityminus[0], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 1 Lower Bound @ %.1f sigma Ha" % float(hasnthresh))
+plt.title("Velocity 1 Lower Bound @ %.1f sigma Ha in km/s" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
@@ -520,41 +542,37 @@ f_xray = fits.open(haimagename)
 # contourloaded = pyregion.open(contourfileds9).as_imagecoord(f_xray[0].header)
 # patch_list, text_list = contourloaded.get_mpl_patches_texts()
 colorbarred = plt.subplot(111)
-zmin11, zmax11 = zscale_range(velocity[1])
-tobar = colorbarred.imshow(velocity[1], interpolation='nearest', origin='lower', vmin=zmin11, vmax=zmax11)
+tobar = colorbarred.imshow(velocity[1], interpolation='nearest', origin='lower')
 # for p in patch_list:
 #     colorbarred.add_patch(p)
 # for t in text_list:
 #     colorbarred.add_artist(t)
 # plt.colorbar(ax=tobar)
-plt.title("Velocity 2")
+plt.title("Velocity 2 in km/s")
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin12, zmax12 = zscale_range(velocity[1])
-colorbarred = plt.imshow(velocity[1], interpolation='nearest', vmin=zmin12, vmax=zmax12)
+colorbarred = plt.imshow(velocity[1], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 2")
+plt.title("Velocity 2 in km/s")
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin13, zmax13 = zscale_range(velocityplus[1])
-colorbarred = plt.imshow(velocityplus[1], interpolation='nearest', vmin=zmin13, vmax=zmax13)
+colorbarred = plt.imshow(velocityplus[1], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 2 Upper Bound @ %.1f sigma Ha" % float(hasnthresh))
+plt.title("Velocity 2 Upper Bound @ %.1f sigma Ha in km/s" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
 
 plt.clf()
-zmin14, zmax14 = zscale_range(velocityminus[1])
-colorbarred = plt.imshow(velocityminus[1], interpolation='nearest', vmin=zmin14, vmax=zmax14)
+colorbarred = plt.imshow(velocityminus[1], interpolation='nearest')
 plt.colorbar()
-plt.title("Velocity 2 Lower Bound @ %.1f sigma Ha" % float(hasnthresh))
+plt.title("Velocity 2 Lower Bound @ %.1f sigma Ha in km/s" % float(hasnthresh))
 plt.xlabel("XPixel")
 plt.ylabel("YPixel")
 plt.show()
