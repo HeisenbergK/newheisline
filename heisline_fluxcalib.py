@@ -3,17 +3,19 @@ import matplotlib.pyplot as plt
 from pylab import annotate
 from pandas import *
 from scipy.stats import linregress
-import numpy as np
-from astropy.io import fits
+# import numpy as np
+# from astropy.io import fits, ascii
 from photutils.psf import IterativelySubtractedPSFPhotometry
 from photutils import MMMBackground
 from photutils.psf import IntegratedGaussianPRF, DAOGroup
 from photutils.detection import DAOStarFinder
 from astropy.modeling.fitting import LevMarLSQFitter
 from zscale import *
+# from pyraf import iraf
+from heisline_calls import *
 
-heislineversion = 3.0
-date = "February 18 2018"
+heislineversion = 3.1
+date = "February 19 2018"
 
 # light speed in angstroems per second
 c = 2.998E+18
@@ -57,6 +59,7 @@ def getstandardmags(filtname, filtfilename, starname, specfilename):
             plt.show()
             ctable = [-0.163, -0.044, 0.055, 0.309]
             atable = np.subtract(57.5, (np.subtract(8.9, ctable)))
+            filtband = 'R'
             while True:
                 filtband = raw_input("Which band does the %s filter belong in? (B,V,R,I)\t" % str(filtname[i]))
                 if filtband == "B" or filtband == "b":
@@ -115,6 +118,8 @@ def getinstrumentfluxes(filtname, starname):
     magmaster = DataFrame(np.zeros([len(filtname), len(starname)]), index=filtname, columns=starname, dtype=object)
     airmasses = DataFrame(np.zeros([len(filtname), len(starname)]), index=filtname, columns=starname, dtype=object)
     for i in filtname:
+        fwhm = input("Please enter the fwhm of the sources in the filter %s:\t" % i)
+        bgsigma = input("Please enter the background standard deviation of the sources in the filter %s:\t" % i)
         for j in starname:
             curmult = multiples[j][i]
             curmult = int(curmult)
@@ -126,11 +131,6 @@ def getinstrumentfluxes(filtname, starname):
                 imagename = j+'_'+i+'-'+str(obsn)+'.fit'
                 image = fits.open(imagename)
                 readdata = image[0].data
-
-                # fwhm = input("Please enter the fwhm of the sources in observation %i of star %s in filter %s:\t"
-                #              % (obsn, j, i))
-                fwhm = 7
-
                 readhead = image[0].header
                 if "AIRMASS" in readhead:
                     am = readhead["AIRMASS"]
@@ -148,22 +148,54 @@ def getinstrumentfluxes(filtname, starname):
                     etime = raw_input("Enter the exposure time of the image %s:\t" % str(imagename))
                     etime = float(etime)
 
-                daogroup = DAOGroup(crit_separation=(3*fwhm))
-                mmm_bkg = MMMBackground()
-                iraffind = DAOStarFinder(threshold=2.5*mmm_bkg(readdata), fwhm=fwhm)
-                fitter = LevMarLSQFitter()
-                gaussian_prf = IntegratedGaussianPRF(sigma=(fwhm/2.355))
-                gaussian_prf.sigma.fixed = False
-                itr_phot_obj = IterativelySubtractedPSFPhotometry(finder=iraffind, group_maker=daogroup,
-                                                                  bkg_estimator=mmm_bkg, psf_model=gaussian_prf,
-                                                                  fitter=fitter, fitshape=(3*fwhm, 3*fwhm), niters=2)
-                phot_results = itr_phot_obj(readdata)
+                irafin = 'y'
+
+                try:
+                    if irafin == 'y':
+                        raise TypeError
+                    daogroup = DAOGroup(crit_separation=(3*fwhm))
+                    mmm_bkg = MMMBackground()
+                    iraffind = DAOStarFinder(threshold=2.5*mmm_bkg(readdata), fwhm=fwhm)
+                    fitter = LevMarLSQFitter()
+                    gaussian_prf = IntegratedGaussianPRF(sigma=(fwhm/2.355))
+                    gaussian_prf.sigma.fixed = False
+                    itr_phot_obj = IterativelySubtractedPSFPhotometry(finder=iraffind, group_maker=daogroup,
+                                                                      bkg_estimator=mmm_bkg, psf_model=gaussian_prf,
+                                                                      fitter=fitter, fitshape=(3*fwhm, 3*fwhm),
+                                                                      niters=2)
+                    phot_results = itr_phot_obj(readdata)
+                except TypeError:
+                    iraf.noao.digiphot.daophot.datapars.setParam('scale', 1)
+                    iraf.noao.digiphot.daophot.datapars.setParam('fwhmpsf', fwhm)
+                    iraf.noao.digiphot.daophot.datapars.setParam('sigma', bgsigma)
+                    iraf.noao.digiphot.daophot.datapars.setParam('noise', "poisson")
+                    iraf.noao.digiphot.daophot.datapars.setParam('emission', "Yes")
+                    iraf.noao.digiphot.daophot.datapars.setParam('readnoise', 8.1)
+                    iraf.noao.digiphot.daophot.datapars.setParam('epadu', 2.867)
+                    iraf.noao.digiphot.daophot.datapars.setParam('itime', etime)
+                    iraf.noao.digiphot.daophot.findpars.setParam('threshold', 4)
+                    iraf.noao.digiphot.daophot.daofind(image=imagename, boundary="nearest", constant=0, verify="No")
+                    iraf.noao.digiphot.daophot.centerpars.setParam('calgorithm', "centroid")
+                    iraf.noao.digiphot.daophot.centerpars.setParam('cbox', 5)
+                    iraf.noao.digiphot.daophot.fitskypars.setParam('salgorithm', "mode")
+                    iraf.noao.digiphot.daophot.fitskypars.setParam('annulus', (10 * fwhm))
+                    iraf.noao.digiphot.daophot.fitskypars.setParam('dannulus', 8)
+                    iraf.noao.digiphot.daophot.fitskypars.setParam('skyvalue', 0)
+                    iraf.noao.digiphot.daophot.fitskypars.setParam('smaxiter', 20)
+                    iraf.noao.digiphot.daophot.photpars.setParam('weighting', "constant")
+                    iraf.noao.digiphot.daophot.photpars.setParam('apertures', ((3 * fwhm) + 3))
+                    iraf.noao.digiphot.daophot.phot(image=imagename, verify="No")
+                    phot_results = ascii.read(imagename+".mag.1")
+                    phot_results.rename_column("ID", 'id')
+                    phot_results.rename_column("XCENTER", 'x_fit')
+                    phot_results.rename_column("YCENTER", 'y_fit')
+                    phot_results.rename_column("FLUX", 'flux_fit')
+
                 newtable = phot_results['id', 'x_fit', 'y_fit', 'flux_fit']
                 print(newtable)
                 print("Please inspect the image for the standard star")
                 plt.clf()
-                bkgest = mmm_bkg.calc_background(readdata)
-                todisp = np.subtract(readdata, bkgest)
+                todisp = readdata
                 zmin, zmax = zscale_range(todisp)
                 plt.imshow(todisp, cmap='gray', aspect=1, origin='lower', vmin=zmin, vmax=zmax)
                 for entry in range(0, len(newtable['id'])):

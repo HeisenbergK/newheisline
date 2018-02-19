@@ -10,8 +10,8 @@ from scipy.interpolate import sproot, splrep, splev
 # from matplotlib import cm
 from zscale import *
 
-heislineversion = 3.0
-date = "February 18 2018"
+heislineversion = 3.1
+date = "February 19 2018"
 
 
 class Error(Exception):

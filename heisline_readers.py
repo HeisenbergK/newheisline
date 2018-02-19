@@ -1,7 +1,7 @@
 from astropy.io import fits
 
-heislineversion = 3.0
-date = "February 18 2018"
+heislineversion = 3.1
+date = "February 19 2018"
 
 # Function that will Read the images
 def reader(imname):

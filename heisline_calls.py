@@ -7,8 +7,8 @@ from astropy.io import ascii, fits
 import scipy.spatial
 import pyregion
 
-heislineversion = 3.0
-date = "February 18 2018"
+heislineversion = 3.1
+date = "February 19 2018"
 
 
 # check for interactivity
@@ -47,7 +47,8 @@ def ask(typed):
                 "Do you want to scale-subtract the continuum images from the narrow-band ones?\t",
                 "Do you want to follow the automated method to flux calibrate (y) or input the extinction "
                 "coefficient and Zero Point yourself (n)?\t",
-                "Do you want to pivot the atmospheric extinction coefficient?\t"]
+                "Do you want to pivot the atmospheric extinction coefficient?\t",
+                "Do you want to fluxcalibrate using IRAF (only if you now photutils will fail)?\t"]
     response = 'y'
     while True:
         response = raw_input(messages[typed])
@@ -348,6 +349,19 @@ def skyeval(imagename, skyregname):
     return sky, skyerr
 
 
+def patch_up(imagename, problemregion, outim):
+    image = fits.open(imagename)
+    image = image[0]
+    oldheader = image.header
+    region = pyregion.open(problemregion).as_imagecoord(image.header)
+    mask = region.get_mask(shape=image.data.shape)
+    mask = np.subtract(1, mask)
+    masked = np.multiply(image.data, mask)
+    oldheader.add_history("User regions patched")
+    hdu = fits.PrimaryHDU(masked, header=oldheader)  # create fits HDU from binned image
+    hdu.writeto(outim)
+
+
 def binimage(imname, binsize, binnedname):
     binsizestr = str(binsize)
     fitsfile = fits.open(imname)
@@ -421,8 +435,23 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
               narrfinerrname):
     narrskyval, narrskyerr = skyeval(narrim, narrskyreg)
     contskyval, contskyerr = skyeval(contim, contskyreg)
-    binimage(narrim, binsize, narrbinned)
-    binimage(contim, binsize, contbinned)
+
+    curdir = os.getcwd()
+    print("Now the %s image will be opened. Mark problematic regions on the image and save it as a .reg file in the "
+          "folder where we are now (%s). Please use the ds9-suggested coordinates." % (narrim, curdir))
+    os.system("ds9 %s" % narrim)
+    dummy = raw_input("Enter the name of the file you just saved:\t")
+    os.system("mv %s problemsnarr.reg" % dummy)
+    print("Now the %s image will be opened. Mark problematic regions on the image and save it as a .reg file in the "
+          "folder where we are now (%s). Please use the ds9-suggested coordinates." % (contim, curdir))
+    os.system("ds9 %s" % contim)
+    dummy = raw_input("Enter the name of the file you just saved:\t")
+    os.system("mv %s problemscont.reg" % dummy)
+
+    patch_up(narrim, "problemsnarr.reg", "narrpatched.fit")
+    patch_up(contim, "problemscont.reg", "contpatched.fit")
+    binimage("narrpatched.fit", binsize, narrbinned)
+    binimage("contpatched.fit", binsize, contbinned)
     narrdata = fits.open(narrbinned)
     narrhead = narrdata[0].header
     if "AIRMASS" in narrhead:

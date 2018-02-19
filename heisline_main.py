@@ -1,14 +1,16 @@
 import curses
 from curses import wrapper
-from heisline_calls import *
+# from heisline_calls import *
 from heisline_fluxcalib import *
 from heisline_skyandbin import *
 import fileinput
 import csv
 import progressbar
+import shutil
+# from pandas import *
 
-heislineversion = 3.0
-date = "February 18 2018"
+heislineversion = 3.1
+date = "February 19 2018"
 
 bugger = open("heisline_bugs.log")
 buggercont = []
@@ -489,6 +491,21 @@ if wantsscaling == 'n':
     with open('scalefactors', 'rb') as f:
         reader = csv.reader(f, delimiter=',')
         packs = list(reader)
+    numnarr = 0
+    while True:
+        print(filtnames)
+        numnarr = input("Out of the shown filters, how many are narrowband (not continuum)?\t")
+        if isinstance(numnarr, int):
+            break
+    narrows = []
+    i = 0
+    while True:
+        if i < numnarr:
+            tmpnarrname = raw_input("What is the name of the #%01d narrow filter name?\t" % (i + 1))
+            narrows.append(tmpnarrname)
+            i += 1
+        else:
+            break
 
 if wantsscaling == 'y':
     packs, narrows = scaling(directory=directory, filtnames=filtnames, basename=basename)
@@ -547,132 +564,89 @@ if wantsflcal == 'n':
         ZP.append(dummy)
 # Flux Calbration Done
 
+os.chdir(directory)
 
-# Determining Image names and sky regions
-print(filtnames)
-hafilname = ''
-siifilname = ''
-rfilname = ''
 
-while True:
-    dummy = 0
-    hafilname = raw_input("Out of the filters shown above, which one is the Ha (as is shown above)?\t")
-    for i in filtnames:
-        if i == hafilname:
-            dummy += 1
-    if dummy == 1:
-        break
-
-while True:
-    dummy = 0
-    siifilname = raw_input("Out of the filters shown above, which one is the SII (as is shown above)?\t")
-    for i in filtnames:
-        if i == siifilname:
-            dummy += 1
-    if dummy == 1:
-        break
-
-while True:
-    dummy = 0
-    rfilname = raw_input("Out of the filters shown above, which one is the sdss-r' (as is shown above)?\t")
-    for i in filtnames:
-        if i == rfilname:
-            dummy += 1
-    if dummy == 1:
-        break
-
-for i in filtnames:
-    os.system("cp "+str(i)+"/"+basename+"_"+str(i)+"_W_allstarfin.fit"+" .")
-
+# photometry
+characteristics = ['mag', 'magerr']
+photometryresultstable = DataFrame(np.zeros([2, len(narrows)]), index=characteristics, columns=narrows)
 
 os.system('mkdir results')
-filer = open("versioncontrol", 'w')
-filer.write(str(heislineversion))
-filer.close()
+for filtername in narrows:
+    os.system('mkdir results/'+filtername)
 
-harawimname = basename + "_" + hafilname + "_W_allstarfin.fit"
-siirawimname = basename + "_" + siifilname + "_W_allstarfin.fit"
-rrawimname = basename + "_" + rfilname + "_W_allstarfin.fit"
+for narrowname in narrows:
+    os.chdir(directory)
 
-habinned = basename + "_" + hafilname + "_W_allstarfin_binned.fit"
-siibinned = basename + "_" + siifilname + "_W_allstarfin_binned.fit"
-rbinned = basename + "_" + rfilname + "_W_allstarfin_binned.fit"
-rbinnednext = basename + "_" + rfilname + "_W_allstarfin_binned2.fit"
+    contname = ''
+    print(filtnames)
+    while True:
+        contname = raw_input("Out of the filter names shown above, what is the name of the continuum filter "
+                             "corresponding to the %s narrow filter? \t" % str(narrowname))
+        contname = str(contname)
+        if contname in filtnames:
+            break
+        else:
+            print("Filter not in list")
+            print(filtnames)
 
-hasciname = basename + "_" + hafilname + "_W_allstarfin_binned_sci.fit"
-siisciname = basename + "_" + siifilname + "_W_allstarfin_binned_sci.fit"
-haerrname = basename + "_" + hafilname + "_W_allstarfin_binned_err.fit"
-siierrname = basename + "_" + siifilname + "_W_allstarfin_binned_err.fit"
+    narrimname = basename + '_' + narrowname + "_W_allstarfin.fit"
+    contimname = basename + '_' + contname + "_W_allstarfin.fit"
+    shutil.copy(narrimname, 'results/'+narrowname)
+    shutil.copy(contimname, 'results/'+narrowname)
 
-os.system('cp ' + basename + "_" + hafilname + "_W_allstarfin.fit " + "results")
-os.system('cp ' + basename + "_" + siifilname + "_W_allstarfin.fit " + "results")
-os.system('cp ' + basename + "_" + rfilname + "_W_allstarfin.fit " + "results")
+    os.chdir('results/'+narrowname)
+    mapdir = os.getcwd()
+
+    print("Now the %s image will be opened. Mark some sky regions on the image and save it as a .reg file in the "
+          "folder where we are now (%s). Please use the ds9-suggested coordinates." % (narrowname, mapdir))
+    os.system("ds9 %s" % narrimname)
+    dummy = raw_input("Enter the name of the file you just saved:\t")
+    os.system("mv %s narrsky.reg" % dummy)
+
+    print("Now the %s image will be opened. Mark some sky regions on the image and save it as a .reg file in the "
+          "folder where we are now (%s). Please use the ds9 suggested coordinates." % (contname, mapdir))
+    os.system("ds9 %s" % contname)
+    dummy = raw_input("Enter the name of the file you just saved:\t")
+    os.system("mv %s contsky.reg" % dummy)
+
+    analysissigma = raw_input("Enter the sigma level to be used for the photometry (I suggest at most 0.5 or 1):\t")
+    analysissigma = float(analysissigma)
+
+    binsize = raw_input("Enter the bin size in pixels to be used for the analysis (I suggest at least 30):\t")
+    binsize = int(binsize)
+
+    narrk = raw_input("Re-Enter the %s absorption coefficient to be used for the analysis:\t" % narrowname)
+    narrk = float(narrk)
+
+    narrzp = raw_input("Re-Enter the %s zero-point to be used for the analysis:\t" % narrowname)
+    narrzp = float(narrzp)
+
+    narrf = raw_input("Re-Enter the %s - %s scaling factor (hopefully computed above) to be used for the analysis:\t"
+                      % (narrowname, contname))
+    narrf = float(narrf)
+
+    narrbinned = basename + "_" + narrowname + "_W_allstarfin_binned.fit"
+    contbinned = basename + "_" + contname + "_W_allstarfin_binned.fit"
+    narrsciname = basename + "_" + narrowname + "_W_allstarfin_binned_sci.fit"
+    narrerrname = basename + "_" + narrowname + "_W_allstarfin_binned_err.fit"
+
+    narrmag, narrmagerr = narrowtot(narrimname, "narrsky.reg", contimname, "contsky.reg", narrk, narrzp,
+                                    analysissigma, binsize, narrf, narrbinned, contbinned, narrsciname, narrerrname)
+
+    photometryresultstable[narrowname]['mag'] = narrmag
+    photometryresultstable[narrowname]['magerr'] = narrmagerr
+
+os.chdir(directory)
 os.chdir('results')
-mapdir = os.getcwd()
-
-print("Now the Ha image will be opened. Mark some sky regions on the image and save it as a .reg "
-      "file in the folder where we are now (%s)." % mapdir)
-os.system("ds9 %s" % harawimname)
-dummy = raw_input("Enter the name of the file you just saved:\t")
-os.system("mv %s hasky.reg" % dummy)
-
-print("Now the SII image will be opened. Mark some sky regions on the image and save it as a .reg "
-      "file in the folder where we are now (%s)" % mapdir)
-os.system("ds9 %s" % siirawimname)
-dummy = raw_input("Enter the name of the file you just saved:\t")
-os.system("mv %s siisky.reg" % dummy)
-
-print("Now the r' image will be opened. Mark some sky regions on the image and save it as a .reg "
-      "file in the folder where we are now (%s)" % mapdir)
-os.system("ds9 %s" % rrawimname)
-dummy = raw_input("Enter the name of the file you just saved:\t")
-os.system("mv %s rsky.reg" % dummy)
-
-
-# Determining done
-
-analysissigma = raw_input("Enter the sigma level to be used for the analysis (I suggest at most 0.5 or 1):\t")
-analysissigma = float(analysissigma)
-
-siisigma = raw_input("Enter the sigma level to be used for the photometry of the SII image "
-                     "(I suggest at very most 0.5):\t")
-siisigma = float(siisigma)
-
-binsize = raw_input("Enter the bin size in pixels to be used for the analysis (I suggest at least 20):\t")
-binsize = int(binsize)
-
-hak = raw_input("Re-Enter the Ha absorption coefficient to be used for the analysis:\t")
-hak = float(hak)
-
-hazp = raw_input("Re-Enter the Ha zero-point to be used for the analysis:\t")
-hazp = float(hazp)
-
-siik = raw_input("Re-Enter the SII absorption coefficient to be used for the analysis:\t")
-siik = float(siik)
-
-siizp = raw_input("Re-Enter the SII zero-point to be used for the analysis:\t")
-siizp = float(siizp)
-
-haf = raw_input("Re-Enter the Ha - r' scaling factor (hopefully computed above) to be used for the analysis:\t")
-haf = float(haf)
-
-siif = raw_input("Re-Enter the SII - r' scaling factor (hopefully computed above) to be used for the analysis:\t")
-siif = float(siif)
-
-# bin and get mag and error for ha and sii
-hamag, hamagerr = narrowtot(harawimname, "hasky.reg", rrawimname, "rsky.reg", hak, hazp, analysissigma, binsize, haf,
-                            habinned, rbinned, hasciname, haerrname)
-siimag, siimagerr = narrowtot(siirawimname, "siisky.reg", rrawimname, "rsky.reg", siik, siizp, siisigma, binsize, siif,
-                              siibinned, rbinnednext, siisciname, siierrname)
-
 filer = open("SNRphotometry.cat", 'a')
 filer.write('Heiseline Version:\t%s\n' % str(heislineversion))
 filer.write(basename + '\n')
 filer.write('All Magnitudes in AB (if given flux calibration in AB)\n')
-filer.write("Ha\n")
-filer.write('Magnitude\tMagnitude Uncertainty\n')
-filer.write('%.8f\t%.8f\n' % (hamag, hamagerr))
-filer.write("SII\n")
-filer.write('Magnitude\tMagnitude Uncertainty\n')
-filer.write('%.8f\t%.8f\n' % (siimag, siimagerr))
+for narrow in narrows:
+    curmag = photometryresultstable[narrow]['mag']
+    curerr = photometryresultstable[narrow]['magerr']
+    filer.write("%s\n" % narrow)
+    filer.write('Magnitude\tMagnitude Uncertainty\n')
+    filer.write('%.8f\t%.8f\n' % (curmag, curerr))
 filer.close()
