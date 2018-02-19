@@ -606,7 +606,7 @@ for narrowname in narrows:
 
     print("Now the %s image will be opened. Mark some sky regions on the image and save it as a .reg file in the "
           "folder where we are now (%s). Please use the ds9 suggested coordinates." % (contname, mapdir))
-    os.system("ds9 %s" % contname)
+    os.system("ds9 %s" % contimname)
     dummy = raw_input("Enter the name of the file you just saved:\t")
     os.system("mv %s contsky.reg" % dummy)
 

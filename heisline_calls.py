@@ -443,8 +443,10 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     dummy = raw_input("Enter the name of the file you just saved:\t")
     os.system("mv %s problemsnarr.reg" % dummy)
     print("Now the %s image will be opened. Mark problematic regions on the image and save it as a .reg file in the "
-          "folder where we are now (%s). Please use the ds9-suggested coordinates." % (contim, curdir))
-    os.system("ds9 %s" % contim)
+          "folder where we are now (%s). Please keep the already loaded regions and add any of your choise ONLY if "
+          "they are ABSOLUTELY needed. Small artifacts should not be marked. Please use the ds9-suggested coordinates."
+          % (contim, curdir))
+    os.system("ds9 -regions problemsnarr.reg %s" % contim)
     dummy = raw_input("Enter the name of the file you just saved:\t")
     os.system("mv %s problemscont.reg" % dummy)
 
