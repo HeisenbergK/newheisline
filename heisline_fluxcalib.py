@@ -3,16 +3,16 @@ import matplotlib.pyplot as plt
 from pylab import annotate
 from pandas import *
 from scipy.stats import linregress
-# import numpy as np
-# from astropy.io import fits, ascii
 from photutils.psf import IterativelySubtractedPSFPhotometry
 from photutils import MMMBackground
 from photutils.psf import IntegratedGaussianPRF, DAOGroup
 from photutils.detection import DAOStarFinder
 from astropy.modeling.fitting import LevMarLSQFitter
 from zscale import *
-# from pyraf import iraf
 from heisline_calls import *
+# import numpy as np
+# from astropy.io import fits, ascii
+# from pyraf import iraf
 
 heislineversion = 3.1
 date = "February 19 2018"
@@ -204,7 +204,7 @@ def getinstrumentfluxes(filtname, starname):
                     fluxin = newtable['flux_fit'][entry]
                     num = entry + 1
                     print("%s %s %s %s" % (str(num), str(xpos), str(ypos), str(fluxin)))
-                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=fwhm, xycoords='data',
+                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=(3*fwhm), xycoords='data',
                              color='green')
                 plt.show()
                 num = 1
