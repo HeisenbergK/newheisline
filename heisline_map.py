@@ -7,8 +7,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import pyregion
 from matplotlib import axes, cm
 
-heislineversion = 3.1
-date = "February 19 2018"
+heislineversion = 3.2
+date = "February 22 2018"
 
 
 def filterimage():

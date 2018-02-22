@@ -4,8 +4,9 @@ import time
 import progressbar
 from heisline_readers import *
 
-heislineversion = 3.1
-date = "February 19 2018"
+heislineversion = 3.2
+date = "February 22 2018"
+
 
 def subtractskyandbin(ralln, rpren, haalln, hapren, siialln, siipren, problemfilen, contourfilen, skyvalfilen, rharatio, rsiiratio, binsize, imdir):
     os.chdir(imdir)

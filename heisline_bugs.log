@@ -7,6 +7,7 @@
 2.6;DISCONTINUED;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
 2.7;OPERATIONAL;Velocity maps not operational.;All producible results are to be trusted.;MODERATE
 2.8;OPERATIONAL;To operate the velocity maps one needs extra training by the developer (not trivial operation);All producible results are to be trusted.;SCHEDULED
-2.9;OPERATIONAL;Added full flux calibration capabilities;All producible results are to be trusted.;SCHEDULED
-3.0;OPERATIONAL;Flux calibration now supports band-specific Vega-AB conversion. Maps fully operational.;All results are to be trusted.;NOT SCHEDULED
-3.1;OPERATIONAL;Flux calibration improved. Photometry improved;All results are to be trusted.;NOT SCHEDULED
+2.9;OPERATIONAL;No known bugs. Added full flux calibration capabilities;All producible results are to be trusted.;SCHEDULED
+3.0;OPERATIONAL;No known bugs. Flux calibration now supports band-specific Vega-AB conversion. Maps fully operational.;All results are to be trusted.;NOT SCHEDULED
+3.1;OPERATIONAL;No known bugs. Flux calibration improved. Photometry improved;All results are to be trusted.;NOT SCHEDULED
+3.2;OPERATIONAL;No known bugs. Flux calibration optimized. Support for AB magnitudes. Added all Massey stars in SomeStars.;All results are to be trusted.;NOT SCHEDULED

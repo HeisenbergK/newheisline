@@ -9,8 +9,8 @@ import progressbar
 import shutil
 # from pandas import *
 
-heislineversion = 3.1
-date = "February 19 2018"
+heislineversion = 3.2
+date = "February 22 2018"
 
 bugger = open("heisline_bugs.log")
 buggercont = []

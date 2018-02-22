@@ -7,8 +7,8 @@ from astropy.io import ascii, fits
 import scipy.spatial
 import pyregion
 
-heislineversion = 3.1
-date = "February 19 2018"
+heislineversion = 3.2
+date = "February 22 2018"
 
 
 # check for interactivity
