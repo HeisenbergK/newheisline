@@ -183,7 +183,7 @@ def getinstrumentfluxes(filtname, starname):
                     fluxin = newtable['flux_fit'][entry]
                     num = entry + 1
                     print("%s %s %s %s" % (str(num), str(xpos), str(ypos), str(fluxin)))
-                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=(3*fwhm), xycoords='data',
+                    annotate(str(num), xy=(xpos, ypos), xytext=(xpos+0, ypos+fwhm), fontsize=(2*fwhm), xycoords='data',
                              color='green')
                 plt.show()
                 num = 1
@@ -191,7 +191,9 @@ def getinstrumentfluxes(filtname, starname):
                     num = raw_input("Enter the id of the standard star:\t")
                     try:
                         num = int(num)
-                        break
+                        answerer = raw_input("Answer blank to confirm:\t")
+                        if answerer == '':
+                            break
                     except ValueError:
                         print("Try again")
                 entry = num - 1
