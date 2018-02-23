@@ -45,6 +45,11 @@ siiimagename = basename + '_' + siifilname + "_W_allstarfin_binned_sci.fit"
 siierrorname = basename + '_' + siifilname + "_W_allstarfin_binned_err.fit"
 contourfileds9 = 'photometry.reg'
 
+os.system('cp ' + hafilname + '/' + haimagename + ' .')
+os.system('cp ' + hafilname + '/' + haerrorname + ' .')
+os.system('cp ' + siifilname + '/' + siiimagename + ' .')
+os.system('cp ' + siifilname + '/' + siierrorname + ' .')
+
 
 # Function that will Read the images
 def reader(imname):
