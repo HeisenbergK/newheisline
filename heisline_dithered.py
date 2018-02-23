@@ -537,6 +537,8 @@ if wantsflcal == 'n':
 
 os.chdir(directory)
 
+for i in filtnames:
+    os.system('cp ' + i + '/' + basename + '_' + i + "_W_allstarfin.fit .")
 
 # photometry
 characteristics = ['mag', 'magerr']
