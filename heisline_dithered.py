@@ -197,7 +197,15 @@ with open("merged_b_f_sh", "wb") as outfile:
 directory = os.getcwd()
 basename = raw_input("Please enter the base name of your images:\t")
 
-dithalign('merged_b_f', 'merged_b_f_sh', basename, imagelists_b_f_sh, filtnames)
+wantsalig = ask(2)
+
+if wantsalig == 'y':
+    dithalign('merged_b_f', 'merged_b_f_sh', basename, imagelists_b_f_sh, filtnames)
+    for i in filtnames:
+        os.system("mkdir %s" % i)
+        os.system('cp ' + basename + "_" + i + "_W.fit" + ' ' + i)
+
+
 
 # ALLSTAR
 for i in range(0, len(filtnames)):

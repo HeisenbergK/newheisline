@@ -181,6 +181,13 @@ def combining(imagelist, filtname, basename):
     iraf.unlearn("imcombine")
 
 
+def combiningdith(imagelist, filtname, basename):
+    iraf.unlearn("imcombine")
+    iraf.images.immatch.imcombine(input=("@" + imagelist), output=(basename + "_" + filtname + "_W.fit"),
+                                  combine="median", rdnoise=8.1, gain=2.867)
+    iraf.unlearn("imcombine")
+
+
 def astrometry(directory, filtname, basename, roughestimatera, roughestimatedec):
     os.chdir(directory + "/" + filtname)
     os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 25 -t=2 %s" %
@@ -625,4 +632,4 @@ def dithalign(prelist, postlist, basename, liststocomb, filtnames):
     iraf.unlearn('imcopy')
     iraf.images.imutil.imcopy(input='@finim', output=('@'+postlist))
     for i in range(0, len(liststocomb)):
-        combining(imagelist=liststocomb[i], filtname=filtnames[i], basename=basename)
+        combiningdith(imagelist=liststocomb[i], filtname=filtnames[i], basename=basename)
