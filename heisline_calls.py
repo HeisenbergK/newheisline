@@ -623,6 +623,6 @@ def dithalign(prelist, postlist, basename, liststocomb, filtnames):
     filer.close()
 
     iraf.unlearn('imcopy')
-    iraf.images.imutil.imcopy(input='finim', output=postlist)
+    iraf.images.imutil.imcopy(input='@finim', output=('@'+postlist))
     for i in range(0, len(liststocomb)):
         combining(imagelist=liststocomb[i], filtname=filtnames[i], basename=basename)
