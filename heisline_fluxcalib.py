@@ -14,8 +14,8 @@ from heisline_calls import *
 # from astropy.io import fits, ascii
 # from pyraf import iraf
 
-heislineversion = 3.2
-date = "February 22 2018"
+heislineversion = 3.3
+date = "February 23 2018"
 
 # light speed in angstroems per second
 c = 2.998E+18

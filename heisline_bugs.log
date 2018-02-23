@@ -11,3 +11,4 @@
 3.0;OPERATIONAL;No known bugs. Flux calibration now supports band-specific Vega-AB conversion. Maps fully operational.;All results are to be trusted.;NOT SCHEDULED
 3.1;OPERATIONAL;No known bugs. Flux calibration improved. Photometry improved;All results are to be trusted.;NOT SCHEDULED
 3.2;OPERATIONAL;No known bugs. Flux calibration optimized. Support for AB magnitudes. Added all Massey stars in SomeStars.;All results are to be trusted.;NOT SCHEDULED
+3.3;OPERATIONAL;No known bugs. Added a new variation of the pipeline, to support dithered images.;All results are to be trusted.;NOT SCHEDULED

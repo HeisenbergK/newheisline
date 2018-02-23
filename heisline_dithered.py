@@ -194,48 +194,10 @@ with open("merged_b_f_sh", "wb") as outfile:
         with open(f, "rb") as infile:
             outfile.write(infile.read())
 
-wantsalign = ask(2)
-
-if wantsalign == 'y':
-    if interactivity == 'y':
-        masterinteractivitycheck(5)
-
-with open("merged_b_f", "r") as f:
-    referenceim = f.readline()
-print("Reference Image:\t" + referenceim)
-
-if wantsalign == 'y':
-    aligning(referenceim)
-
+directory = os.getcwd()
 basename = raw_input("Please enter the base name of your images:\t")
 
-wantscombine = ask(3)
-
-
-# Combination
-if wantscombine == 'y':
-    for i in range(0, len(imagelists_b_f_sh)):
-        combining(imagelist=imagelists_b_f_sh[i], filtname=filtnames[i], basename=basename)
-# Combination Done
-directory = os.getcwd()
-
-
-# WCS
-wantswcs = ask(4)
-
-if wantswcs == 'y':
-    for i in filtnames:
-        os.system("mkdir %s" % i)
-        os.system("cp %s %s" % (basename+"_"+i+".fit", i))
-    roughestimatera = raw_input("Enter a rough estimate for the R.A. in HH:MM:SS :\t")
-    roughestimatedec = raw_input("Enter a rough estimate for the Dec. in DD:MM:SS :\t")
-    directory = os.getcwd()
-    for i in filtnames:
-        astrometry(directory=directory, filtname=i, basename=basename, roughestimatera=roughestimatera,
-                   roughestimatedec=roughestimatedec)
-    os.chdir(directory)
-# WCS Done
-
+dithalign('merged_b_f', 'merged_b_f_sh', basename, imagelists_b_f_sh, filtnames)
 
 # ALLSTAR
 for i in range(0, len(filtnames)):

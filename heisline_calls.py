@@ -6,9 +6,11 @@ import numpy as np
 from astropy.io import ascii, fits
 import scipy.spatial
 import pyregion
+from astropy.wcs import WCS
+from math import ceil
 
-heislineversion = 3.2
-date = "February 22 2018"
+heislineversion = 3.3
+date = "February 23 2018"
 
 
 # check for interactivity
@@ -489,3 +491,138 @@ def narrowtot(narrim, narrskyreg, contim, contskyreg, k, zp, sigma, binsize, f, 
     mag = zp - np.multiply(airmass, k) + instrmag
     magerr = instrerr
     return mag, magerr
+
+
+def dithalign(prelist, postlist, basename, liststocomb, filtnames):
+    ra = raw_input("Enter a rough estimate for the R.A. in HH:MM:SS :\t")
+    dec = raw_input("Enter a rough estimate for the Dec. in DD:MM:SS :\t")
+
+    preims = []
+    filer = open(prelist)
+    for line in filer:
+        preims.append(line.strip('\n'))
+    filer.close()
+
+    wims = []
+    for i in preims:
+        wims.append(i.strip('.fit') + '_w.fit')
+
+    for image in preims:
+        os.system("solve-field --ra=%s --dec=%s -5 0.5 --out=%s --sigma 40 -t=5 %s" % (ra, dec, "test.fit", image))
+        os.system("mv test.new %s" % (image.strip('.fit') + '_w.fit'))
+        os.system("rm %s %s %s %s %s %s %s %s %s %s" % ("test-ngc.png", "test.wcs", "test-objs.png", "test-indx.png",
+                                                        "test-indx.xyls", "test.rdls", "test.axy", "test.solved",
+                                                        "test.match", "test.corr"))
+
+    inx = []
+    iny = []
+    fix = []
+    fiy = []
+    plts = []
+
+    for image in wims:
+        wcur = WCS(image)
+        header = fits.getheader(image)
+        ax1l = float(header["NAXIS1"])
+        ax2l = float(header["NAXIS2"])
+        llx, lly = wcur.wcs_pix2world(1., 1., 1)
+        urx, ury = wcur.wcs_pix2world(ax1l, ax2l, 1)
+        # print(lly, ury)
+        llx = float(llx)
+        lly = float(lly)
+        urx = float(urx)
+        ury = float(ury)
+        comments = header['COMMENT']
+        comments = list(comments)
+        plt = filter(lambda x: x.startswith('scale: '), comments)
+        plt = plt[0]
+        plt = plt.strip(' arcsec/pix')
+        plt = plt[-8:]
+        plt = float(plt)
+        plts.append(plt)
+        fininx = min(llx, urx)
+        fininy = min(lly, ury)
+        finfinx = max(llx, urx)
+        finfiny = max(lly, ury)
+        inx.append(fininx)
+        iny.append(fininy)
+        fix.append(finfinx)
+        fiy.append(finfiny)
+
+    pls = np.median(plts)
+    xin = max(inx)
+    yin = max(iny)
+    xfin = min(fix)
+    yfin = min(fiy)
+    xlen = xfin - xin
+    ylen = yfin - yin
+    xlen *= (60 * 60)
+    ylen *= (60 * 60)
+    xlen /= pls
+    ylen /= pls
+    xlen = int(xlen)
+    ylen = int(ylen)
+
+    extraxs = []
+    extrays = []
+
+    for image in wims:
+        wcur = WCS(image)
+        header = fits.getheader(image)
+        llx, lly = wcur.wcs_world2pix(xin, yin, 1)
+        urx, ury = wcur.wcs_world2pix(xfin, yfin, 1)
+        # print(llx, lly, urx, ury)
+        ax1l = float(header["NAXIS1"])
+        ax2l = float(header["NAXIS2"])
+        llx = min(llx, urx)
+        lly = min(lly, ury)
+        llx = int(ceil(llx))
+        lly = int(ceil(lly))
+        urx = int(llx + xlen)
+        ury = int(lly + ylen)
+        extrax = ax1l - urx
+        extray = ax2l - ury
+        if extrax < 0:
+            extraxs.append(-extrax)
+        if extray < 0:
+            extrays.append(-extray)
+
+    if len(extraxs) == 0:
+        extraxs.append(0)
+    if len(extrays) == 0:
+        extrays.append(0)
+
+    extrax = int(ceil(max(extraxs)))
+    extray = int(ceil(max(extrays)))
+
+    xlen = int(xlen - extrax)
+    ylen = int(ylen - extray)
+
+    filer = open('finim', 'w')
+    for image in wims:
+        wcur = WCS(image)
+        header = fits.getheader(image)
+        llx, lly = wcur.wcs_world2pix(xin, yin, 1)
+        urx, ury = wcur.wcs_world2pix(xfin, yfin, 1)
+        ax1l = int(header["NAXIS1"])
+        ax2l = int(header["NAXIS2"])
+        llx = min(llx, urx)
+        lly = min(lly, ury)
+        llx = int(ceil(llx))
+        lly = int(ceil(lly))
+        urx = int(llx + xlen)
+        ury = int(lly + ylen)
+        if urx > ax1l:
+            urx -= 1
+            llx -= 1
+        if ury > ax2l:
+            ury -= 1
+            lly -= 1
+        finim = image + '[' + str(llx) + ':' + str(urx) + ',' + str(lly) + ':' + str(ury) + ']' + '\n'
+        filer.write(finim)
+    filer.close()
+
+    iraf.unlearn('imcopy')
+    iraf.images.imutil.imcopy(input='finim', output=postlist)
+    for i in range(0, len(liststocomb)):
+        combining(imagelist=liststocomb[i], filtname=filtnames[i], basename=basename)
