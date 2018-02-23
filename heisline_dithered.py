@@ -204,6 +204,7 @@ if wantsalig == 'y':
     for i in filtnames:
         os.system("mkdir %s" % i)
         os.system('cp ' + basename + "_" + i + "_W.fit" + ' ' + i)
+        os.system('cp ' + i + '/' + basename + "_" + i + "_W.fit" + ' ' + i + '/' + basename + "_" + i + ".fit")
 
 
 
